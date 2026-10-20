@@ -4,11 +4,15 @@ import Icon from '../components/Icon'
 import type { Feature } from '../features'
 import type { Session } from '../types'
 import type { RestroomQueue } from '../hooks/useRestroomQueue'
+import type { Cart } from '../hooks/useCart'
+import { describePick, type SnackPickState } from '../hooks/useSnackPick'
 
 interface Props {
   session: Session
   features: Feature[]
   restroom: RestroomQueue
+  cart: Cart
+  picks: SnackPickState
   onOpen: (id: string) => void
 }
 
@@ -17,10 +21,10 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export default function Home({ session, features, restroom, onOpen }: Props) {
+export default function Home({ session, features, restroom, cart, picks, onOpen }: Props) {
   return session.role === 'crew'
     ? <CrewHome features={features} restroom={restroom} onOpen={onOpen} />
-    : <PassengerHome seat={session.seat} features={features} restroom={restroom} onOpen={onOpen} />
+    : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} onOpen={onOpen} />
 }
 
 // Live one-line status for the restroom tile.
@@ -31,7 +35,14 @@ function restroomStatus(q: RestroomQueue) {
   return q.waitingCount === 0 ? 'No line right now' : `${q.waitingCount} waiting`
 }
 
-function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; onOpen: (id: string) => void }) {
+// Live one-line status for the snacks tile.
+function snackStatus(cart: Cart, picks: SnackPickState) {
+  if (!cart.ready || !picks.ready || cart.error) return null
+  if (cart.items.length === 0) return 'Cart not set up yet'
+  return describePick(picks.pick, cart.items) ?? 'Pick before the cart comes'
+}
+
+function PassengerHome({ seat, features, restroom, snacks, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; snacks: string | null; onOpen: (id: string) => void }) {
   const live = restroomStatus(restroom)
   const { flight, remaining } = useFlight()
 
@@ -56,6 +67,7 @@ function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; fea
             <span className="tile-label">{f.label}</span>
             <span className="tile-desc">{f.description}</span>
             {f.id === 'bathroom' && live && <span className="tile-live"><span className="led" /> {live}</span>}
+            {f.id === 'snacks' && snacks && <span className="tile-live"><span className="led" /> {snacks}</span>}
             <span className="tile-foot">Open <Icon name="arrow" size={16} /></span>
           </button>
         ))}

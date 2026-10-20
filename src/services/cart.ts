@@ -4,11 +4,13 @@ import { supabase } from '../lib/supabase'
 // for an onboard server without touching the UI.
 
 export type ItemKind = 'drink' | 'snack'
+export type Serve = 'hot' | 'cold'
 
 export interface CartItem {
   id: string
   name: string
   kind: ItemKind
+  serve: Serve | null // drinks only: hot gets cream/sugar, cold gets ice
   in_stock: boolean
 }
 
@@ -20,7 +22,7 @@ function client() {
 export async function fetchCart(flightId: string): Promise<CartItem[]> {
   const { data, error } = await client()
     .from('cart_items')
-    .select('id, name, kind, in_stock')
+    .select('id, name, kind, serve, in_stock')
     .eq('flight_id', flightId)
     .order('created_at')
     .order('id')
@@ -28,13 +30,13 @@ export async function fetchCart(flightId: string): Promise<CartItem[]> {
   return data
 }
 
-async function rpc(fn: string, args: Record<string, string | boolean>) {
+async function rpc(fn: string, args: Record<string, string | boolean | null>) {
   const { error } = await client().rpc(fn, args)
   if (error) throw error
 }
 
-export const addItem = (flightId: string, name: string, kind: ItemKind) =>
-  rpc('cart_add', { p_flight: flightId, p_name: name, p_kind: kind })
+export const addItem = (flightId: string, name: string, kind: ItemKind, serve: Serve | null) =>
+  rpc('cart_add', { p_flight: flightId, p_name: name, p_kind: kind, p_serve: serve })
 export const setInStock = (flightId: string, id: string, inStock: boolean) =>
   rpc('cart_set_stock', { p_flight: flightId, p_id: id, p_in_stock: inStock })
 export const removeItem = (flightId: string, id: string) => rpc('cart_remove', { p_flight: flightId, p_id: id })

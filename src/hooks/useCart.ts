@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   addItem, fetchCart, loadStandardCart, removeItem, setInStock, subscribeCart,
-  type CartItem, type ItemKind,
+  type CartItem, type ItemKind, type Serve,
 } from '../services/cart'
 import { supabase } from '../lib/supabase'
 import { errorText } from './useRestroomQueue'
@@ -11,7 +11,7 @@ export interface Cart {
   error: string | null
   items: CartItem[]
   busy: boolean
-  add: (name: string, kind: ItemKind) => Promise<void>
+  add: (name: string, kind: ItemKind, serve: Serve | null) => Promise<void>
   setStock: (id: string, inStock: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
   loadStandard: () => Promise<void>
@@ -61,7 +61,7 @@ export function useCart(flightId: string): Cart {
     error,
     items,
     busy,
-    add: (name, kind) => run(() => addItem(flightId, name, kind)),
+    add: (name, kind, serve) => run(() => addItem(flightId, name, kind, serve)),
     setStock: (id, inStock) => run(() => setInStock(flightId, id, inStock)),
     remove: (id) => run(() => removeItem(flightId, id)),
     loadStandard: () => run(() => loadStandardCart(flightId)),

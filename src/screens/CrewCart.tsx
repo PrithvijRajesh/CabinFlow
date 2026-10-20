@@ -1,12 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import Icon from '../components/Icon'
-import { useFlight } from '../context/useFlight'
-import { useCart, type Cart } from '../hooks/useCart'
-import type { CartItem, ItemKind } from '../services/cart'
+import type { Cart } from '../hooks/useCart'
+import type { CartItem, ItemKind, Serve } from '../services/cart'
+import type { IconName } from '../components/Icon'
 
-export default function CrewCart() {
-  const { flightId } = useFlight()
-  const cart = useCart(flightId)
+// What the crew pick when adding an item.
+const ITEM_TYPES: { label: string; kind: ItemKind; serve: Serve | null; icon: IconName }[] = [
+  { label: 'Cold drink', kind: 'drink', serve: 'cold', icon: 'cup' },
+  { label: 'Hot drink', kind: 'drink', serve: 'hot', icon: 'cup' },
+  { label: 'Snack', kind: 'snack', serve: null, icon: 'cart' },
+]
+
+export default function CrewCart({ cart }: { cart: Cart }) {
   const out = cart.items.filter((i) => !i.in_stock).length
 
   return (
@@ -54,7 +59,7 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
         <ul className="crew-rows">
           {items.map((item) => (
             <li key={item.id} className={item.in_stock ? 'cart-row' : 'cart-row is-out'}>
-              <span className="cart-name">{item.name}</span>
+              <span className="cart-name">{item.name}{item.serve === 'hot' && <span className="cart-tag">hot</span>}</span>
               <span className="crew-actions">
                 <button
                   className={item.in_stock ? 'btn-mini' : 'btn-mini btn-mini-out'}
@@ -78,7 +83,7 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
 
 function AddItem({ cart }: { cart: Cart }) {
   const [name, setName] = useState('')
-  const [kind, setKind] = useState<ItemKind>('drink')
+  const [type, setType] = useState(0)
   const [hint, setHint] = useState('')
 
   async function submit(e: FormEvent) {
@@ -89,7 +94,8 @@ function AddItem({ cart }: { cart: Cart }) {
       setHint(`${clean} is already on the cart.`)
       return
     }
-    await cart.add(clean, kind)
+    const t = ITEM_TYPES[type]
+    await cart.add(clean, t.kind, t.serve)
     setName('')
   }
 
@@ -106,16 +112,16 @@ function AddItem({ cart }: { cart: Cart }) {
           aria-label="Item name"
         />
         <div className="seg" role="radiogroup" aria-label="Type">
-          {(['drink', 'snack'] as const).map((k) => (
+          {ITEM_TYPES.map((t, i) => (
             <button
-              key={k}
+              key={t.label}
               type="button"
               role="radio"
-              aria-checked={kind === k}
-              className={kind === k ? 'seg-btn active' : 'seg-btn'}
-              onClick={() => setKind(k)}
+              aria-checked={type === i}
+              className={type === i ? 'seg-btn active' : 'seg-btn'}
+              onClick={() => setType(i)}
             >
-              <Icon name={k === 'drink' ? 'cup' : 'cart'} size={16} /> {k === 'drink' ? 'Drink' : 'Snack'}
+              <Icon name={t.icon} size={16} /> {t.label}
             </button>
           ))}
         </div>

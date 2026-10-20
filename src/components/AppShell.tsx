@@ -6,8 +6,11 @@ import ComingSoon from '../screens/ComingSoon'
 import Restroom from '../screens/Restroom'
 import CrewRestroom from '../screens/CrewRestroom'
 import CrewCart from '../screens/CrewCart'
+import Snacks from '../screens/Snacks'
 import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
+import { useCart } from '../hooks/useCart'
+import { useSnackPick } from '../hooks/useSnackPick'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
 
@@ -21,7 +24,10 @@ export default function AppShell({ session, onSignOut }: Props) {
   const features = FEATURES[session.role]
   const current = features.find((f) => f.id === active)
   const { flightId } = useFlight()
-  const restroom = useRestroomQueue(flightId, session.role === 'passenger' ? session.seat : null)
+  const seat = session.role === 'passenger' ? session.seat : null
+  const restroom = useRestroomQueue(flightId, seat)
+  const cart = useCart(flightId)
+  const picks = useSnackPick(flightId, seat)
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (
@@ -68,14 +74,16 @@ export default function AppShell({ session, onSignOut }: Props) {
         <main className="content" key={active}>
           {session.role === 'passenger' && active === 'bathroom' ? (
             <Restroom queue={restroom} />
+          ) : session.role === 'passenger' && active === 'snacks' ? (
+            <Snacks cart={cart} picks={picks} />
           ) : session.role === 'crew' && active === 'bathroom' ? (
             <CrewRestroom />
           ) : session.role === 'crew' && active === 'snacks' ? (
-            <CrewCart />
+            <CrewCart cart={cart} />
           ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (
-            <Home session={session} features={features} restroom={restroom} onOpen={setActive} />
+            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} onOpen={setActive} />
           )}
         </main>
       </div>

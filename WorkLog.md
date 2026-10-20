@@ -42,3 +42,12 @@
 - **2026-10-20** — Fixed standard cart loading in random order (staggered `created_at` via `unnest ... with ordinality`).
 - **2026-10-20** — Backend tested on a test flight ID (load twice, trim, case-insensitive duplicates, stock, remove, bad input, direct insert blocked, wrong flight); UI tested manually.
 - **2026-10-20** — Feature 4 approved and committed.
+
+## Feature 5 — Passenger snack and drink picks
+
+- **2026-10-20** — Database: `serve` (hot/cold) on `cart_items`, `cart_add` takes serve, standard cart marks Coffee/Tea hot; `snack_picks` table + `snack_pick_save` function, realtime enabled (`supabase/migrations/0006`).
+- **2026-10-20** — Passenger Snacks & Drinks screen: one drink + one snack, ice toggle (cold), cream + sugar 0–3 (hot), sticky save bar, clear, "ran out" notice.
+- **2026-10-20** — Live pick on the Home snacks tile; crew add form gets Cold drink / Hot drink / Snack.
+- **2026-10-20** — `AppShell` now owns the cart and pick hooks (one realtime channel per flight).
+- **2026-10-20** — Backend tested on a test flight ID (option cleanup, wrong kind, out of stock, sugar range, item removal, clear, direct insert blocked); UI tested manually.
+- **2026-10-20** — Feature 5 approved and committed.

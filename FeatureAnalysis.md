@@ -169,3 +169,33 @@
 - One cart per flight (no per-cabin carts).
 - No quantities, just in stock / out.
 - Same crew-auth limit as Feature 3: anyone with the publishable key could call the cart functions.
+
+## Feature 5 — Passenger snack and drink picks
+
+### What it does
+- Passengers see the crew's live cart and pick **one drink and one snack** (each optional) before service starts.
+- **Drink options:**
+  - Cold drinks: **Ice / No ice** (ice by default).
+  - Hot drinks: **Black / Cream** and **Sugar 0–3**.
+- A sticky bar shows the pick in plain words ("Coffee · cream · 1 sugar + Pretzels") with **Save my pick / Update pick** and **Clear**.
+- Out-of-stock items can't be picked. If a saved item runs out, the passenger is told to pick another. If crew remove an item, it drops off the pick automatically.
+- The Home snacks tile shows the saved pick live.
+
+### How it's implemented
+- **Migration 0006:**
+  - `cart_items.serve` (`hot` / `cold`, null for snacks) decides which options a drink gets. Existing carts are backfilled (Coffee/Tea hot).
+  - `snack_picks`: one row per seat per flight, with `drink_id` / `snack_id` pointing at `cart_items` (`on delete set null`) plus `ice`, `cream`, `sugar`.
+  - `snack_pick_save` checks the items are on this flight, the right kind, and in stock; it drops options that don't fit the drink. Saving nothing deletes the row.
+- **Frontend:**
+  - `src/services/snackPicks.ts` + `src/hooks/useSnackPick.ts`: this seat's pick only, kept live. `describePick()` turns a pick into the readable summary.
+  - `src/screens/Snacks.tsx`: the picker keeps a local draft and remounts from the saved pick whenever it changes.
+  - `AppShell` owns `useCart` and `useSnackPick` and passes them down, so screens share one realtime channel.
+
+### Why it matters
+- PRD Feature 5: passengers choose what they want ahead of time, so the cart stop is a hand-off instead of a conversation.
+- Ice/cream/sugar are the questions crew ask at every row; answering them up front saves the most time.
+- The picks table is the input for Feature 6 (crew see picks by row) and the "commonly wanted snacks" stats the PRD allows.
+
+### Known limits
+- Passengers can only read their own pick in the UI, but the table is readable with the publishable key (crew need it in Feature 6). Same auth limit as before.
+- Every hot drink gets cream/sugar options, even ones where they don't fit (e.g. hot chocolate).
