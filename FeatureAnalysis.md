@@ -308,3 +308,32 @@
 ### Known limits
 - Turbulence is not real yet; destination has no weather yet. Both are the next refinement.
 - No cockpit data, by design (PRD out-of-scope #4).
+
+## Feature 9 refinement — Live turbulence and destination weather
+
+### What it does
+- **Ride outlook** is now real: each of the five legs shows **Nothing reported**, **Light chop** or **Bumpy**, based on current aviation advisories and recent pilot reports along the actual route.
+- "Nothing reported" is worded on purpose: no report is not a promise of smooth air.
+- Outside the US, a note explains that only major turbulence warnings are published.
+- **Destination** shows current weather (°C / °F, conditions, wind), the forecast around arrival time, and the local time there now.
+
+### How it's implemented
+- **Data source:** NOAA Aviation Weather Center (`aviationweather.gov`). Free, no key, but no CORS, so it's called from a Supabase Edge Function.
+- **`supabase/functions/flight-weather`:**
+  - Gets both airports' coordinates from METAR, draws the great-circle route and samples 8 points per leg.
+  - Climb/descent legs check advisories that reach below 25,000 ft; cruise legs check 28,000–43,000 ft.
+  - Checks points against **international SIGMET** polygons (worldwide), **US G-AIRMET** turbulence polygons, and **PIREPs** from the last 2 hours within 120 km.
+  - Maps intensity to passenger words: light → Light chop, moderate/severe → Bumpy.
+  - Destination: METAR now + the TAF forecast line covering the arrival time (skips TEMPO / PROB "maybe" lines), turned into plain words.
+  - Cached 15 min in `weather_cache` (migration 0011), keyed by route + arrival hour.
+- **`flight-lookup`** now keeps each airport's ICAO code, coordinates and time zone (NOAA only takes ICAO codes).
+- **Frontend:** `src/services/flightWeather.ts`, `src/hooks/useFlightWeather.ts` (refresh every 15 min), and the updated `src/screens/FlightInfo.tsx`.
+
+### Why it matters
+- PRD Feature 9: real expected turbulence and destination info, without cockpit data (out of scope #4).
+- Passengers can time restroom trips for smooth stretches, which supports the cabin-movement goal.
+
+### Known limits
+- Coverage is uneven: dense over the US, only significant turbulence elsewhere.
+- Advisories are forecasts and reports, not measurements. The screen says so.
+- Flights saved before this change need to be loaded again to get ICAO codes.

@@ -19,7 +19,10 @@ function json(body: unknown, status = 200) {
 }
 
 interface Movement {
-  airport?: { iata?: string; name?: string; municipalityName?: string; shortName?: string }
+  airport?: {
+    iata?: string; icao?: string; name?: string; municipalityName?: string; shortName?: string
+    timeZone?: string; location?: { lat?: number; lon?: number }
+  }
   scheduledTime?: { local?: string; utc?: string }
   revisedTime?: { local?: string; utc?: string }
   predictedTime?: { local?: string; utc?: string }
@@ -43,9 +46,14 @@ function best(m?: Movement) {
 }
 
 function normalize(f: AdbFlight) {
+  // icao + location feed the flight-weather function; timeZone gives local time.
   const place = (m?: Movement) => ({
     code: m?.airport?.iata ?? '—',
     city: m?.airport?.municipalityName ?? m?.airport?.shortName ?? m?.airport?.name ?? '',
+    icao: m?.airport?.icao ?? null,
+    lat: m?.airport?.location?.lat ?? null,
+    lon: m?.airport?.location?.lon ?? null,
+    timeZone: m?.airport?.timeZone ?? null,
   })
   return {
     flightNumber: (f.number ?? '').replace(/\s+/g, ' ').trim(),

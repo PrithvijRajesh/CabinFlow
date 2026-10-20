@@ -2,3 +2,6 @@
 # must be off; the function validates input and caches to protect API quota.
 [functions.flight-lookup]
 verify_jwt = false
+
+[functions.flight-weather]
+verify_jwt = false

@@ -85,3 +85,11 @@
 - **2026-10-20** — Flight Info screen: route header with progress, flight status card, destination card, ride outlook timeline (5 legs, current leg highlighted). Uses existing flight data; no new service.
 - **2026-10-20** — Ride outlook uses clearly labelled **sample** data until a real turbulence source is approved.
 - **2026-10-20** — Basic Feature 9 approved and committed. Next: real turbulence + destination weather.
+
+## Feature 9 refinement — Live turbulence and destination weather
+
+- **2026-10-20** — NOAA Aviation Weather Center approved as data source (free, no key, no CORS → server-side).
+- **2026-10-20** — Edge Function `flight-weather`: great-circle route in 5 legs checked against SIGMETs, US G-AIRMETs and pilot reports; destination METAR + TAF at arrival; 15-min `weather_cache` (`supabase/migrations/0011`).
+- **2026-10-20** — `flight-lookup` now stores ICAO, coordinates and time zone per airport.
+- **2026-10-20** — Flight Info uses live data: Nothing reported / Light chop / Bumpy per leg, destination temp, conditions, wind, arrival forecast, local time; sample generator removed.
+- **2026-10-20** — Tested on SFO–DFW, JFK–LHR, SFO–SIN, ORD–DEN; UI tested manually. Approved and committed.

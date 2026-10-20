@@ -583,7 +583,9 @@ button:disabled { cursor: default; }
 .ride-leg-label { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
 .ride-leg.is-past { opacity: 0.45; }
 .ride-leg.is-now .ride-bar { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px currentColor; }
-.ride-smooth { color: var(--ok); }
+.ride-none { color: var(--ok); }
+.info-weather { margin: 14px 0 0; font-size: 1.05rem; }
+.info-weather strong { font-family: var(--mono); font-weight: 500; margin-right: 4px; }
 .ride-light { color: #b7791f; }
 .ride-bumpy { color: var(--danger); }
 
