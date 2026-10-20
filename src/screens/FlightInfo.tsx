@@ -26,12 +26,13 @@ function localNow(timeZone?: string | null) {
 }
 
 export default function FlightInfo() {
-  const { flight, progress, remaining, isDemo } = useFlight()
+  const { flight, progress, remaining, isDemo, phase } = useFlight()
   const { weather, loading, error, missingCodes } = useFlightWeather(flight)
   const status = statusLabel(flight.status)
   const dest = weather?.destination
   const legs = weather?.outlook?.legs
-  const current = Math.min(LEG_NAMES.length - 1, Math.floor(progress * LEG_NAMES.length))
+  // Only in flight is there a "current" leg; before takeoff it's the whole route ahead.
+  const current = phase === 'inflight' ? Math.min(LEG_NAMES.length - 1, Math.floor(progress * LEG_NAMES.length)) : null
   const destNow = localNow(flight.destination.timeZone)
 
   return (
@@ -89,10 +90,12 @@ export default function FlightInfo() {
 
         <div className="info-card info-wide">
           <div className="ride-head">
-            <p className="eyebrow section-label">Ride outlook</p>
+            <p className="eyebrow section-label">{phase === 'boarding' ? 'Expected ride' : 'Ride outlook'}</p>
             {weather && <span className="pill">Updated {new Date(weather.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
           </div>
-          {legs ? (
+          {phase === 'landed' ? (
+            <p className="ride-now">We've landed. Welcome to {flight.destination.city || flight.destination.code}.</p>
+          ) : legs ? (
             <RideOutlook legs={legs} current={current} usOnly={weather!.outlook!.usOnly} />
           ) : (
             <p className="info-meta">{loading ? 'Checking the route for turbulence…' : 'Ride outlook is unavailable for this flight right now.'}</p>
@@ -106,14 +109,27 @@ export default function FlightInfo() {
   )
 }
 
-function RideOutlook({ legs, current, usOnly }: { legs: RideLeg[]; current: number; usOnly: boolean }) {
-  const now = RIDE[legs[current].ride]
+// Before takeoff: the roughest part of the route ahead, in one line.
+function expected(legs: RideLeg[]) {
+  const bumpy = legs.filter((l) => l.ride === 'bumpy').map((l) => l.name.toLowerCase())
+  const light = legs.filter((l) => l.ride === 'light').map((l) => l.name.toLowerCase())
+  if (bumpy.length) return <>Some <strong className="ride-bumpy">bumps</strong> reported along the route ({bumpy.join(', ')}). The crew will keep you posted.</>
+  if (light.length) return <>Mostly calm, with <strong className="ride-light">light chop</strong> reported ({light.join(', ')}).</>
+  return <><strong className="ride-none">No turbulence reported</strong> along today's route so far.</>
+}
+
+function RideOutlook({ legs, current, usOnly }: { legs: RideLeg[]; current: number | null; usOnly: boolean }) {
+  const now = current === null ? null : RIDE[legs[current].ride]
   return (
     <>
-      <p className="ride-now">Right now: <strong className={`ride-${legs[current].ride}`}>{now.label}</strong>. {now.tip}</p>
+      {now && current !== null ? (
+        <p className="ride-now">Right now: <strong className={`ride-${legs[current].ride}`}>{now.label}</strong>. {now.tip}</p>
+      ) : (
+        <p className="ride-now">{expected(legs)}</p>
+      )}
       <ol className="ride-legs">
         {legs.map((leg, i) => (
-          <li key={leg.name} className={`ride-leg ride-${leg.ride}${i === current ? ' is-now' : ''}${i < current ? ' is-past' : ''}`}>
+          <li key={leg.name} className={`ride-leg ride-${leg.ride}${i === current ? ' is-now' : ''}${current !== null && i < current ? ' is-past' : ''}`}>
             <span className="ride-bar" />
             <span className="ride-leg-name">{leg.name}</span>
             <span className="ride-leg-label">{leg.ride === 'none' ? 'Nothing reported' : RIDE[leg.ride].label}</span>

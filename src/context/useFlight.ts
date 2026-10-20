@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { FlightInfo } from '../types'
+import type { FlightInfo, FlightPhase } from '../types'
 
 export interface FlightContextValue {
   flight: FlightInfo
@@ -8,6 +8,9 @@ export interface FlightContextValue {
   remaining: string
   isDemo: boolean // no flight set for this aircraft yet
   ready: boolean // aircraft flight loaded (avoids flashing the demo flight)
+  phase: FlightPhase // override if crew set one, else from flight data
+  phaseOverride: FlightPhase | null
+  setPhase: (phase: FlightPhase | null) => Promise<void> // crew only; null = auto
   loadFlight: (number: string) => Promise<void> // crew only
   resetToDemo: () => Promise<void> // crew only
 }

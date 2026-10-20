@@ -1,5 +1,7 @@
 export type Role = 'passenger' | 'crew'
 
+export type FlightPhase = 'boarding' | 'inflight' | 'landed'
+
 export type Session =
   | { role: 'passenger'; seat: string }
   | { role: 'crew' }

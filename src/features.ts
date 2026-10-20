@@ -1,20 +1,35 @@
 import type { IconName } from './components/Icon'
-import type { Role } from './types'
+import type { FlightPhase, Role } from './types'
 
 export interface Feature {
   id: string
   label: string
   icon: IconName
   description: string
+  // Passenger phases it's available in (all phases when omitted), and why it's off otherwise.
+  phases?: FlightPhase[]
+  offReason?: Partial<Record<FlightPhase, string>>
 }
 
 // Each role's sections. Future features plug in here; anything without a
 // screen yet shows a "coming soon" placeholder.
 export const FEATURES: Record<Role, Feature[]> = {
   passenger: [
-    { id: 'bathroom', label: 'Restroom', icon: 'restroom', description: 'Save your place in line and stay seated until it is your turn.' },
-    { id: 'snacks', label: 'Snacks & Drinks', icon: 'cup', description: 'Pick what you would like before the cart reaches your row.' },
-    { id: 'assistance', label: 'Assistance', icon: 'bell', description: 'Tell the crew exactly what you need.' },
+    {
+      id: 'bathroom', label: 'Restroom', icon: 'restroom', description: 'Save your place in line and stay seated until it is your turn.',
+      phases: ['inflight'],
+      offReason: { boarding: 'The restroom line opens after takeoff.', landed: 'The restroom line is closed after landing.' },
+    },
+    {
+      id: 'snacks', label: 'Snacks & Drinks', icon: 'cup', description: 'Pick what you would like before the cart reaches your row.',
+      phases: ['boarding', 'inflight'],
+      offReason: { landed: 'Snack service has ended for this flight.' },
+    },
+    {
+      id: 'assistance', label: 'Assistance', icon: 'bell', description: 'Tell the crew exactly what you need.',
+      phases: ['inflight', 'landed'],
+      offReason: { boarding: 'Requests open after takeoff. During boarding, ask any crew member in the aisle.' },
+    },
     { id: 'flight', label: 'Flight Info', icon: 'compass', description: 'Ride outlook and your arrival airport.' },
   ],
   crew: [
@@ -23,3 +38,5 @@ export const FEATURES: Record<Role, Feature[]> = {
     { id: 'assistance', label: 'Requests', icon: 'bell', description: 'Incoming passenger requests by row.' },
   ],
 }
+
+export const isAvailable = (f: Feature, phase: FlightPhase) => !f.phases || f.phases.includes(phase)

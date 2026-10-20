@@ -600,6 +600,12 @@ button:disabled { cursor: default; }
 .setup-head { display: flex; flex-direction: column; gap: 4px; }
 .setup-flight { margin: 4px 0 0; font-family: var(--mono); font-size: 1.5rem; font-weight: 500; }
 .setup-card .lookup { margin-top: 14px; }
+.phase-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.phase-row .lookup-meta { flex-basis: 100%; text-transform: none; letter-spacing: 0.02em; }
+.rail-item.is-off { opacity: 0.45; }
+.tile.is-off { opacity: 0.6; }
+.tile.is-off:hover { transform: none; box-shadow: none; }
+.tile-off { color: inherit; opacity: 0.85; }
 
 /* ---------- Crew snack cart ---------- */
 .cart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }

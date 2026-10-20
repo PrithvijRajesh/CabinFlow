@@ -31,4 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Flight-phase rules: features available by phase (before takeoff, in flight, after landing), with a crew phase override.
+Fix the issues the user noticed during testing (list to come from the user).

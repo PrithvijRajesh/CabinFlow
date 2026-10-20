@@ -3,11 +3,11 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), Feature 7 (passenger assistance requests), Feature 8 (crew requests + urgent banner), Feature 9 (flight info with live NOAA turbulence + destination weather via Edge Function `flight-weather`), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
+- **Done:** Feature 1 (role select, seat entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), Feature 7 (passenger assistance requests), Feature 8 (crew requests + urgent banner), Feature 9 (flight info with live NOAA turbulence + destination weather via Edge Function `flight-weather`). Flight lookup uses AeroDataBox via Edge Function `flight-lookup`; crew set the flight on crew Home.
 - **Phase:** all 9 PRD features exist. Now refining features so they work properly.
 - **Done (refinement):** crew login (Supabase Auth + `crew_members`) and aircraft flight setup on crew Home (`aircraft_flights`, aircraft `DEMO-1`).
-- **Next:** flight-phase rules. Agreed: before takeoff **Restroom and Assistance are off** (crew are in the aisle during boarding), Snacks on (pre-order), ride outlook in "expected ride" mode. After landing: Restroom and Snacks off. Crew can override the phase (Boarding → In flight → Landed) because AeroDataBox status can lag.
-- The user has noticed other issues to raise later.
+- **Done (refinement):** flight-phase rules (before takeoff: Restroom + Assistance off, Snacks on; after landing: Restroom + Snacks off). Crew override on crew Home. UI-only enforcement.
+- **Next:** the user has noticed other issues to raise. Ask for them.
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.

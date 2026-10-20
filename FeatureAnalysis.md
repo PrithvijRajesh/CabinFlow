@@ -363,3 +363,32 @@
 ### Known limits
 - **Reads are still open:** seat-level data (queue, picks, requests) is readable with the publishable key, because passengers read their own rows without signing in. Fixing it needs a passenger identity (e.g. a per-seat token from the IFE).
 - One demo aircraft; on real hardware the IFE supplies the aircraft ID.
+
+## Refinement — Flight-phase rules
+
+### What it does
+- Passenger features follow the flight phase:
+
+  | | Before takeoff | In flight | After landing |
+  |---|---|---|---|
+  | Restroom line | Off | On | Off |
+  | Assistance | Off | On | On |
+  | Snack picks | On (pre-order) | On | Off |
+  | Ride outlook | "Expected ride" | "Right now" + legs | "We've landed" |
+
+- Features that are off stay visible but greyed, with the reason ("The restroom line opens after takeoff"). Before takeoff, Assistance tells passengers to ask any crew member in the aisle.
+- Crew can set the phase from crew Home (**Auto / Boarding / In flight / Landed**). Every seatback follows it live.
+- Crew screens work in every phase, with a notice when passengers can't use that feature right now.
+
+### How it's implemented
+- **Auto phase** (`autoPhase()` in `src/data/flight.ts`): Arrived → landed; EnRoute / Departed / Approaching → in flight; otherwise scheduled times decide, because AeroDataBox can still say "Expected" after takeoff.
+- **Crew override** (migration 0013): `aircraft_phase` table + `aircraft_set_phase` (crew only, null = auto). Setting or clearing the flight resets it to auto.
+- **Rules live in `src/features.ts`:** each passenger feature lists the `phases` it's open in and an `offReason` per phase. `isAvailable()` is used by the nav, Home tiles and `AppShell` (which shows `src/screens/Unavailable.tsx`).
+- `FlightContext` exposes `phase`, `phaseOverride` and `setPhase`. Flight Info, crew Home (`FlightSetup`), crew Restroom and crew Requests read it.
+
+### Why it matters
+- During boarding the crew are in the aisle and won't see requests, and a restroom line makes no sense before takeoff. Turning features off avoids promises the crew can't keep.
+- Crew override covers what flight data can't know (doors closed, actual takeoff); real aircraft would supply this from their own sensors.
+
+### Known limits
+- The rules are enforced in the UI only. The database doesn't block, for example, a restroom join before takeoff, because the auto phase is computed in the app.

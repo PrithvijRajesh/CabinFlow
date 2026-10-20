@@ -101,3 +101,11 @@
 - **2026-10-20** — Crew sign-in screen (email + password, remembered per tablet) replaces the demo PIN; stale PIN sessions are sent back to sign-in.
 - **2026-10-20** — Flight setup moved from the passenger welcome screen to crew Home ("This aircraft · DEMO-1"); seatbacks read the aircraft's flight live.
 - **2026-10-20** — Verified crew functions reject the publishable key alone; sign-in and flight setup tested manually. Approved, committed and pushed.
+
+## Refinement — Flight-phase rules
+
+- **2026-10-20** — Agreed rules: before takeoff Restroom and Assistance off (crew are in the aisle), Snacks on; after landing Restroom and Snacks off, Assistance on.
+- **2026-10-20** — Auto phase from status + scheduled times (times win when AeroDataBox lags); crew override per aircraft (`aircraft_phase`, `aircraft_set_phase`), reset on new flight (`supabase/migrations/0013`).
+- **2026-10-20** — Passenger nav / Home tiles greyed with reasons, Not available screen; Flight Info "Expected ride" before takeoff and "We've landed" after.
+- **2026-10-20** — Crew Home phase control (Auto / Boarding / In flight / Landed) with a passenger-availability line; phase notices on crew Restroom and Requests.
+- **2026-10-20** — Tested manually across all phases. Approved, committed and pushed.

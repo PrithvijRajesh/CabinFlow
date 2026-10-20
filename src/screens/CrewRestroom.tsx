@@ -23,7 +23,7 @@ function mmss(seconds: number) {
 const since = (iso: string | null, now: number) => (iso ? (now - new Date(iso).getTime()) / 1000 : 0)
 
 export default function CrewRestroom() {
-  const { flightId } = useFlight()
+  const { flightId, phase } = useFlight()
   const q = useCrewRestroomQueue(flightId)
   const now = useNow()
 
@@ -41,6 +41,9 @@ export default function CrewRestroom() {
       </div>
 
       {q.error && <p className="notice notice-error">{q.error}</p>}
+      {phase !== 'inflight' && (
+        <p className="notice notice-warn">Passengers can't join the line {phase === 'boarding' ? 'until takeoff' : 'after landing'}. Set the phase on Home if that's wrong.</p>
+      )}
 
       <div className={q.paused ? 'line-control paused' : 'line-control'}>
         <span className="line-state">

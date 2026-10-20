@@ -1,4 +1,4 @@
-import type { FlightInfo } from '../types'
+import type { FlightInfo, FlightPhase } from '../types'
 
 const minutesFromNow = (m: number) => new Date(Date.now() + m * 60_000).toISOString()
 
@@ -55,4 +55,20 @@ export function statusLabel(status: string): { label: string; tone: 'ok' | 'warn
     case 'Expected': return { label: 'Scheduled', tone: 'neutral' }
     default: return { label: 'Unknown', tone: 'neutral' }
   }
+}
+
+// Phase from flight data. AeroDataBox status can lag (still "Expected" after
+// takeoff), so scheduled times win once they've passed. Crew can override.
+export function autoPhase(flight: FlightInfo, now = Date.now()): FlightPhase {
+  if (flight.status === 'Arrived') return 'landed'
+  if (['EnRoute', 'Departed', 'Approaching'].includes(flight.status)) return 'inflight'
+  if (flight.arrivalUtc && now >= new Date(flight.arrivalUtc).getTime()) return 'landed'
+  if (flight.departureUtc && now >= new Date(flight.departureUtc).getTime()) return 'inflight'
+  return 'boarding'
+}
+
+export const PHASE_LABEL: Record<FlightPhase, string> = {
+  boarding: 'Boarding',
+  inflight: 'In flight',
+  landed: 'Landed',
 }

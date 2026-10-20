@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { FlightInfo } from '../types'
+import type { FlightInfo, FlightPhase } from '../types'
 
 // The aircraft's current flight, set once by crew and read by every seatback.
 
@@ -29,11 +29,30 @@ export async function clearAircraftFlight(aircraftId: string) {
   if (error) throw new Error(error.message)
 }
 
-// Calls onChange when crew set or clear this aircraft's flight. Returns unsubscribe.
-export function subscribeAircraftFlight(aircraftId: string, onChange: () => void): () => void {
+// Crew phase override; null = auto.
+export async function fetchPhaseOverride(aircraftId: string): Promise<FlightPhase | null> {
+  const { data, error } = await client()
+    .from('aircraft_phase')
+    .select('phase')
+    .eq('aircraft_id', aircraftId)
+    .maybeSingle()
+  if (error) throw error
+  return (data?.phase as FlightPhase | undefined) ?? null
+}
+
+// Crew only (checked in the database). null = back to auto.
+export async function setPhaseOverride(aircraftId: string, phase: FlightPhase | null) {
+  const { error } = await client().rpc('aircraft_set_phase', { p_aircraft: aircraftId, p_phase: phase })
+  if (error) throw new Error(error.message)
+}
+
+// Calls onChange when crew change this aircraft's flight or phase. Returns unsubscribe.
+export function subscribeAircraft(aircraftId: string, onChange: () => void): () => void {
+  const filter = `aircraft_id=eq.${aircraftId}`
   const channel = client()
     .channel(`aircraft:${aircraftId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'aircraft_flights', filter: `aircraft_id=eq.${aircraftId}` }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'aircraft_flights', filter }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'aircraft_phase', filter }, onChange)
     .subscribe()
   return () => { void client().removeChannel(channel) }
 }

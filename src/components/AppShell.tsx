@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { FEATURES } from '../features'
+import { FEATURES, isAvailable } from '../features'
 import type { Session } from '../types'
 import Home from '../screens/Home'
 import ComingSoon from '../screens/ComingSoon'
+import Unavailable from '../screens/Unavailable'
 import Restroom from '../screens/Restroom'
 import CrewRestroom from '../screens/CrewRestroom'
 import CrewCart from '../screens/CrewCart'
@@ -29,7 +30,7 @@ export default function AppShell({ session, onSignOut }: Props) {
   const [active, setActive] = useState('home')
   const features = FEATURES[session.role]
   const current = features.find((f) => f.id === active)
-  const { flightId } = useFlight()
+  const { flightId, phase } = useFlight()
   const seat = session.role === 'passenger' ? session.seat : null
   const restroom = useRestroomQueue(flightId, seat)
   const cart = useCart(flightId)
@@ -39,6 +40,11 @@ export default function AppShell({ session, onSignOut }: Props) {
   const crewAssist = useCrewAssistance(flightId, session.role === 'crew')
   const urgent = crewAssist.urgentOpen[0]
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
+  // Crew screens work in every phase; passenger features follow the phase rules.
+  const isOff = (id: string) => {
+    const f = features.find((x) => x.id === id)
+    return session.role === 'passenger' && !!f && !isAvailable(f, phase)
+  }
 
   return (
     <div className={`shell theme-${session.role}`}>
@@ -48,7 +54,7 @@ export default function AppShell({ session, onSignOut }: Props) {
           {nav.map((item) => (
             <button
               key={item.id}
-              className={active === item.id ? 'rail-item active' : 'rail-item'}
+              className={`rail-item${active === item.id ? ' active' : ''}${isOff(item.id) ? ' is-off' : ''}`}
               onClick={() => setActive(item.id)}
               aria-current={active === item.id ? 'page' : undefined}
             >
@@ -75,7 +81,7 @@ export default function AppShell({ session, onSignOut }: Props) {
           </span>
         </header>
 
-        {restroom.isMyTurn && active !== 'bathroom' && (
+        {restroom.isMyTurn && !isOff('bathroom') && active !== 'bathroom' && (
           <button className="turn-banner" onClick={() => setActive('bathroom')}>
             <Icon name="restroom" size={20} /> It's your turn for the restroom. <strong>Open</strong>
           </button>
@@ -88,7 +94,9 @@ export default function AppShell({ session, onSignOut }: Props) {
         )}
 
         <main className="content" key={active}>
-          {session.role === 'passenger' && active === 'bathroom' ? (
+          {current && isOff(current.id) ? (
+            <Unavailable feature={current} />
+          ) : session.role === 'passenger' && active === 'bathroom' ? (
             <Restroom queue={restroom} />
           ) : session.role === 'passenger' && active === 'snacks' ? (
             <Snacks cart={cart} picks={picks} />

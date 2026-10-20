@@ -2,7 +2,7 @@ import { useFlight } from '../context/useFlight'
 import FlightStrip from '../components/FlightStrip'
 import FlightSetup from '../components/FlightSetup'
 import Icon from '../components/Icon'
-import type { Feature } from '../features'
+import { isAvailable, type Feature } from '../features'
 import type { Session } from '../types'
 import type { RestroomQueue } from '../hooks/useRestroomQueue'
 import type { Cart } from '../hooks/useCart'
@@ -64,7 +64,7 @@ function assistStatus(a: Assistance) {
 
 function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; snacks: string | null; help: string | null; onOpen: (id: string) => void }) {
   const live = restroomStatus(restroom)
-  const { flight, remaining } = useFlight()
+  const { flight, remaining, phase } = useFlight()
 
   return (
     <section className="home">
@@ -78,20 +78,29 @@ function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { sea
       </div>
 
       <div className="bento">
-        {features.map((f, i) => (
-          <button key={f.id} className={`tile tile-${f.id}`} onClick={() => onOpen(f.id)}>
+        {features.map((f, i) => {
+          const off = !isAvailable(f, phase)
+          return (
+          <button key={f.id} className={`tile tile-${f.id}${off ? ' is-off' : ''}`} onClick={() => onOpen(f.id)}>
             <span className="tile-top">
               <span className="tile-icon"><Icon name={f.icon} size={26} /></span>
               <span className="tile-index">0{i + 1}</span>
             </span>
             <span className="tile-label">{f.label}</span>
             <span className="tile-desc">{f.description}</span>
-            {f.id === 'bathroom' && live && <span className="tile-live"><span className="led" /> {live}</span>}
-            {f.id === 'snacks' && snacks && <span className="tile-live"><span className="led" /> {snacks}</span>}
-            {f.id === 'assistance' && help && <span className="tile-live"><span className="led" /> {help}</span>}
+            {off ? (
+              <span className="tile-live tile-off">{f.offReason?.[phase] ?? 'Not available right now'}</span>
+            ) : (
+              <>
+                {f.id === 'bathroom' && live && <span className="tile-live"><span className="led" /> {live}</span>}
+                {f.id === 'snacks' && snacks && <span className="tile-live"><span className="led" /> {snacks}</span>}
+                {f.id === 'assistance' && help && <span className="tile-live"><span className="led" /> {help}</span>}
+              </>
+            )}
             <span className="tile-foot">Open <Icon name="arrow" size={16} /></span>
           </button>
-        ))}
+          )
+        })}
       </div>
 
       <p className="footnote">Need help right away? Your call button works as usual.</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { isUrgent, type CrewAssistance } from '../hooks/useCrewAssistance'
+import { useFlight } from '../context/useFlight'
 import { ASSIST_TYPES, type CrewAssistRequest } from '../services/assistance'
 
 const labelOf = (r: CrewAssistRequest) => ASSIST_TYPES.find((a) => a.type === r.type)?.label ?? r.type
@@ -18,6 +19,7 @@ const mins = (iso: string | null, now: number) => (iso ? Math.max(0, Math.floor(
 
 export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
   const now = useNow()
+  const { phase } = useFlight()
   const total = assist.open.length + assist.onTheWay.length
 
   return (
@@ -31,6 +33,9 @@ export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
       </div>
 
       {assist.error && <p className="notice notice-error">{assist.error}</p>}
+      {phase === 'boarding' && (
+        <p className="notice notice-warn">Passengers can't send requests until takeoff. Set the phase on Home if that's wrong.</p>
+      )}
 
       {!assist.ready ? (
         <p className="crew-empty">Loading requests…</p>
