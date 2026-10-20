@@ -3,10 +3,12 @@ import FlightStrip from '../components/FlightStrip'
 import Icon from '../components/Icon'
 import type { Feature } from '../features'
 import type { Session } from '../types'
+import type { RestroomQueue } from '../hooks/useRestroomQueue'
 
 interface Props {
   session: Session
   features: Feature[]
+  restroom: RestroomQueue
   onOpen: (id: string) => void
 }
 
@@ -15,13 +17,23 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export default function Home({ session, features, onOpen }: Props) {
+export default function Home({ session, features, restroom, onOpen }: Props) {
   return session.role === 'crew'
     ? <CrewHome features={features} onOpen={onOpen} />
-    : <PassengerHome seat={session.seat} features={features} onOpen={onOpen} />
+    : <PassengerHome seat={session.seat} features={features} restroom={restroom} onOpen={onOpen} />
 }
 
-function PassengerHome({ seat, features, onOpen }: { seat: string; features: Feature[]; onOpen: (id: string) => void }) {
+// Live one-line status for the restroom tile.
+function restroomStatus(q: RestroomQueue) {
+  if (!q.ready || q.error) return null
+  if (q.isMyTurn) return "It's your turn"
+  if (q.ahead !== null) return q.ahead === 0 ? "You're next" : `You're ${q.ahead + 1} in line`
+  return q.waitingCount === 0 ? 'No line right now' : `${q.waitingCount} waiting`
+}
+
+function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; onOpen: (id: string) => void }) {
+  const live = restroomStatus(restroom)
+
   return (
     <section className="home">
       <div className="hero">
@@ -42,6 +54,7 @@ function PassengerHome({ seat, features, onOpen }: { seat: string; features: Fea
             </span>
             <span className="tile-label">{f.label}</span>
             <span className="tile-desc">{f.description}</span>
+            {f.id === 'bathroom' && live && <span className="tile-live"><span className="led" /> {live}</span>}
             <span className="tile-foot">Open <Icon name="arrow" size={16} /></span>
           </button>
         ))}

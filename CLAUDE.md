@@ -8,7 +8,7 @@ CabinFlow
 
 ## Project Description
 
-A application that connects to seat back screens to help improve airline operations. Users can request a spot in the bathroom line, make snack service requests, request assitance, and look at flight information. Cabin crew can use to manage user requests, understand snack preferences, and manage cabin movement.
+A application that connects to seat back screens to help improve airline operations. Users can request a spot in the bathroom line, make snack service requests, request assitance, and look at flight information. Cabin crew can use to manage user requests, understand snack preferences, and manage cabin movement. Sold to seatback IFE manufacturers (e.g. Panasonic Avionics) as a module on their platform.
 
 ## Stack
 
@@ -30,4 +30,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Simple option to choose what user is, passenger or flight attendant and simple welcome screen and layout for future features.
+Passenger restroom line: join or leave the queue, see your position and when it's your turn.

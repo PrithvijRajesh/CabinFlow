@@ -3,6 +3,9 @@ import { FEATURES } from '../features'
 import type { Session } from '../types'
 import Home from '../screens/Home'
 import ComingSoon from '../screens/ComingSoon'
+import Restroom from '../screens/Restroom'
+import { FLIGHT_ID } from '../data/flight'
+import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
 
@@ -15,6 +18,7 @@ export default function AppShell({ session, onSignOut }: Props) {
   const [active, setActive] = useState('home')
   const features = FEATURES[session.role]
   const current = features.find((f) => f.id === active)
+  const restroom = useRestroomQueue(FLIGHT_ID, session.role === 'passenger' ? session.seat : null)
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (
@@ -52,11 +56,19 @@ export default function AppShell({ session, onSignOut }: Props) {
           </span>
         </header>
 
-        <main className="content">
-          {current ? (
+        {restroom.isMyTurn && active !== 'bathroom' && (
+          <button className="turn-banner" onClick={() => setActive('bathroom')}>
+            <Icon name="restroom" size={20} /> It's your turn for the restroom. <strong>Open</strong>
+          </button>
+        )}
+
+        <main className="content" key={active}>
+          {session.role === 'passenger' && active === 'bathroom' ? (
+            <Restroom queue={restroom} />
+          ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (
-            <Home session={session} features={features} onOpen={setActive} />
+            <Home session={session} features={features} restroom={restroom} onOpen={setActive} />
           )}
         </main>
       </div>

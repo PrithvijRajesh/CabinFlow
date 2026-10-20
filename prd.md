@@ -8,6 +8,10 @@ CabinFlow
 
 Airline passengers and cabin crew
 
+## Customer
+
+Sold to seatback IFE manufacturers (e.g. Panasonic Avionics) as a module on their platform.
+
 ## Problem
 
 Airplane cabin operations are inefficient and lead to unnecesary cabin movement during flight times. We can use a simple mobile application that connects to the on screen tablets to help with bathroom queues, assistance, better flight info, and snack services so that cabin operations are smoother.

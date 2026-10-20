@@ -36,3 +36,41 @@
 - The crew PIN is checked in the browser, so it's not real security. Real auth would need a backend.
 - The flight data is hardcoded.
 - There's no shared state between devices yet. Bathroom queue and requests will need a backend or a real-time service, and I'll ask before adding one.
+
+## Feature 2 — Passenger restroom line
+
+### What it does
+- Passengers save a spot in the restroom line from their seat instead of standing in the aisle.
+- The screen shows how many are waiting and an estimated wait (4 min per person).
+- Once in line, the passenger sees their place ("2nd") and anonymous dots for the line, never other seat numbers (PRD out-of-scope #3).
+- When it's their turn, the card turns orange with a **5-minute countdown**:
+  - **I'm back** marks the turn done.
+  - **Give up my turn** leaves the line.
+  - If the timer runs out, the next person is called and they see a "timed out" notice.
+- A banner appears on any screen when it's your turn. The Home tile shows live status ("You're 2nd in line").
+
+### How it's implemented
+- **Backend: Supabase** (hosted Postgres + realtime).
+  - The table `restroom_queue` stores one row per spot: flight, seat, status (`waiting → called → done | skipped | left`) and timestamps.
+  - A unique index allows only one active spot per seat.
+- **Writes only through database functions.** The browser can read the table but can't write to it directly.
+  - `restroom_join` and `restroom_finish` add or close a spot, then call `restroom_tick`.
+  - `restroom_tick` times out a turn after 5 minutes and calls the next waiting seat.
+  - A per-flight lock (`pg_advisory_xact_lock`) stops two seats from being called at once.
+- **Live updates:** the app subscribes to row changes for its flight and refetches. Every 30s it also calls `restroom_tick`, so timeouts happen even if the called passenger walks away.
+- **Data layer:**
+  - All backend calls are in `src/services/restroomQueue.ts`, so Supabase can later be swapped for an aircraft onboard server.
+  - `src/hooks/useRestroomQueue.ts` turns them into simple UI state: position, isMyTurn, join, leave, finish.
+  - The list query fetches only id, status and time, so other seats' numbers never reach the screen.
+- **Flight ID:** `FLIGHT_ID` = flight number + UTC date (e.g. `CF482-2026-10-20`). It keeps each flight's line separate.
+
+### Why it matters
+- It's the core passenger promise from the proposal: no standing in the aisle, and you know when to go.
+- Fewer people standing in the aisle means fewer blocked carts and less crew walking. That's the cabin-movement problem in the PRD.
+- It's the first shared, real-time data in the app. The same pattern (table + functions + realtime) will power snacks, assistance and the crew views.
+
+### Known limits (intentional for MVP)
+- One lavatory per flight. Per-lavatory queues can come later.
+- No real login: anyone with the publishable key could read the queue table directly (seat + times), even though the UI never shows it.
+- Crew controls (seeing the line, overriding whose turn it is) are Feature 3.
+- ⚠️ Patent risk: Collins/B/E holds US11958606B2 (seatback restroom queue). Review before selling.

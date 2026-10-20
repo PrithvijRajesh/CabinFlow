@@ -17,3 +17,6 @@ export const CREW_PIN = '1234'
 // Rows 1–60. Seat letters A–K, skipping I (airlines don't use it).
 export const SEAT_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K']
 export const SEAT_PATTERN = /^([1-9]|[1-5][0-9]|60)[A-HJK]$/
+
+// Groups backend data (queue, requests) per flight and day.
+export const FLIGHT_ID = `${FLIGHT.flightNumber.replace(/\s/g, '')}-${new Date().toISOString().slice(0, 10)}`
