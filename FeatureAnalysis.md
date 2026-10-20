@@ -260,3 +260,31 @@
 ### Known limits
 - Same auth limit as before: anyone with the publishable key could read requests or send them for any seat.
 - It doesn't replace the physical call button, and says so.
+
+## Feature 8 — Crew assistance requests
+
+### What it does
+- Crew see every request on the flight in three columns:
+  - **New:** urgent first, then oldest. Seat, type, note, "waiting 4 min", with **On my way** and **Done**.
+  - **On the way:** with **Done**.
+  - **Recently closed:** done or cancelled by the passenger (15 minutes).
+- **On my way** tells the passenger help is coming (their status changes live).
+- **Done** works straight from New, for things handled in passing.
+- An urgent ("Feeling unwell") request shows a **passive banner** on every crew screen until someone taps On my way. No pop-ups or sounds.
+- Crew Home shows live **Open requests** (and how many are urgent).
+
+### How it's implemented
+- **Migration 0010:** `assist_ack` (open → ack) and `assist_done` (open/ack → done), both no-ops on anything already closed. Also patches the Feature 7 note check (`note is not null`).
+- **Frontend:**
+  - `src/hooks/useCrewAssistance.ts`: all requests on the flight, live, split into open / on the way / recent, with `urgentOpen` for the banner. Only enabled for crew.
+  - `src/screens/CrewRequests.tsx`: the console screen.
+  - `AppShell` owns the hook and shows the urgent banner.
+
+### Why it matters
+- PRD Feature 8: crew see and manage requests.
+- Crew know *what* is needed before walking over, so one trip instead of two.
+- Glance-and-fix: urgent requests surface on their own; everything else waits in a sorted list.
+
+### Known limits
+- No assignment of a request to a specific crew member.
+- Same auth limit as before.

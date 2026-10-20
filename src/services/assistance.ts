@@ -16,6 +16,11 @@ export interface AssistRequest {
   closed_at: string | null
 }
 
+// Crew view: includes the seat. Never used on passenger screens.
+export interface CrewAssistRequest extends AssistRequest {
+  seat: string
+}
+
 // Shown on passenger and crew screens. "Something else" needs a note.
 export const ASSIST_TYPES: { type: AssistType; label: string; hint: string; urgent?: boolean }[] = [
   { type: 'unwell', label: 'Feeling unwell', hint: 'Dizzy, sick or in pain', urgent: true },
@@ -51,6 +56,19 @@ export async function fetchMyRequests(flightId: string, seat: string): Promise<A
   return data
 }
 
+// Every open request on this flight plus recently closed ones. Crew only.
+export async function fetchFlightRequests(flightId: string): Promise<CrewAssistRequest[]> {
+  const since = new Date(Date.now() - RECENT_MINUTES * 60_000).toISOString()
+  const { data, error } = await client()
+    .from('assistance_requests')
+    .select('id, seat, type, note, status, created_at, ack_at, closed_at')
+    .eq('flight_id', flightId)
+    .or(`status.in.(open,ack),closed_at.gte.${since}`)
+    .order('created_at')
+  if (error) throw error
+  return data
+}
+
 async function rpc(fn: string, args: Record<string, string | null>) {
   const { error } = await client().rpc(fn, args)
   if (error) throw error
@@ -58,6 +76,8 @@ async function rpc(fn: string, args: Record<string, string | null>) {
 
 export const sendRequest = (flightId: string, seat: string, type: AssistType, note: string | null) =>
   rpc('assist_request', { p_flight: flightId, p_seat: seat, p_type: type, p_note: note })
+export const ackRequest = (flightId: string, id: string) => rpc('assist_ack', { p_flight: flightId, p_id: id })
+export const doneRequest = (flightId: string, id: string) => rpc('assist_done', { p_flight: flightId, p_id: id })
 export const cancelRequest = (flightId: string, seat: string, id: string) =>
   rpc('assist_cancel', { p_flight: flightId, p_seat: seat, p_id: id })
 
@@ -69,6 +89,15 @@ export function subscribeMyRequests(flightId: string, seat: string, onChange: ()
       const row = (p.new && 'seat' in p.new ? p.new : p.old) as { seat?: string }
       if (!row.seat || row.seat === seat) onChange()
     })
+    .subscribe()
+  return () => { void client().removeChannel(channel) }
+}
+
+// Calls onChange when any request on this flight changes. Crew only.
+export function subscribeFlightRequests(flightId: string, onChange: () => void): () => void {
+  const channel = client()
+    .channel(`assist-crew:${flightId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'assistance_requests', filter: `flight_id=eq.${flightId}` }, onChange)
     .subscribe()
   return () => { void client().removeChannel(channel) }
 }

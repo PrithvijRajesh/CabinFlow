@@ -8,12 +8,14 @@ import CrewRestroom from '../screens/CrewRestroom'
 import CrewCart from '../screens/CrewCart'
 import Snacks from '../screens/Snacks'
 import Assistance from '../screens/Assistance'
+import CrewRequests from '../screens/CrewRequests'
 import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import { useCart } from '../hooks/useCart'
 import { useSnackPick } from '../hooks/useSnackPick'
 import { useCrewPicks } from '../hooks/useCrewPicks'
 import { useAssistance } from '../hooks/useAssistance'
+import { useCrewAssistance } from '../hooks/useCrewAssistance'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
 
@@ -33,6 +35,8 @@ export default function AppShell({ session, onSignOut }: Props) {
   const picks = useSnackPick(flightId, seat)
   const orders = useCrewPicks(flightId, session.role === 'crew')
   const assist = useAssistance(flightId, seat)
+  const crewAssist = useCrewAssistance(flightId, session.role === 'crew')
+  const urgent = crewAssist.urgentOpen[0]
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (
@@ -76,6 +80,12 @@ export default function AppShell({ session, onSignOut }: Props) {
           </button>
         )}
 
+        {urgent && active !== 'assistance' && (
+          <button className="turn-banner" onClick={() => setActive('assistance')}>
+            <Icon name="bell" size={20} /> Urgent: {urgent.seat} is feeling unwell. <strong>Open</strong>
+          </button>
+        )}
+
         <main className="content" key={active}>
           {session.role === 'passenger' && active === 'bathroom' ? (
             <Restroom queue={restroom} />
@@ -87,10 +97,12 @@ export default function AppShell({ session, onSignOut }: Props) {
             <CrewRestroom />
           ) : session.role === 'crew' && active === 'snacks' ? (
             <CrewCart cart={cart} orders={orders} />
+          ) : session.role === 'crew' && active === 'assistance' ? (
+            <CrewRequests assist={crewAssist} />
           ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (
-            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} assist={assist} onOpen={setActive} />
+            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} assist={assist} crewAssist={crewAssist} onOpen={setActive} />
           )}
         </main>
       </div>

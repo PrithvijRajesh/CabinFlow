@@ -8,6 +8,7 @@ import type { Cart } from '../hooks/useCart'
 import { describePick, type SnackPickState } from '../hooks/useSnackPick'
 import type { CrewPicks } from '../hooks/useCrewPicks'
 import type { Assistance } from '../hooks/useAssistance'
+import type { CrewAssistance } from '../hooks/useCrewAssistance'
 import { ASSIST_TYPES } from '../services/assistance'
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
   picks: SnackPickState
   orders: CrewPicks
   assist: Assistance
+  crewAssist: CrewAssistance
   onOpen: (id: string) => void
 }
 
@@ -26,9 +28,9 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export default function Home({ session, features, restroom, cart, picks, orders, assist, onOpen }: Props) {
+export default function Home({ session, features, restroom, cart, picks, orders, assist, crewAssist, onOpen }: Props) {
   return session.role === 'crew'
-    ? <CrewHome features={features} restroom={restroom} orders={orders} onOpen={onOpen} />
+    ? <CrewHome features={features} restroom={restroom} orders={orders} requests={crewAssist} onOpen={onOpen} />
     : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} help={assistStatus(assist)} onOpen={onOpen} />
 }
 
@@ -96,12 +98,13 @@ function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { sea
   )
 }
 
-function CrewHome({ features, restroom, orders, onOpen }: { features: Feature[]; restroom: RestroomQueue; orders: CrewPicks; onOpen: (id: string) => void }) {
+function CrewHome({ features, restroom, orders, requests, onOpen }: { features: Feature[]; restroom: RestroomQueue; orders: CrewPicks; requests: CrewAssistance; onOpen: (id: string) => void }) {
+  const openRequests = requests.open.length + requests.onTheWay.length
   const toServe = orders.picks.filter((p) => (p.drink_id || p.snack_id) && !p.served_at).length
   const { flight, remaining } = useFlight()
   // Counters stay blank until the features feeding them exist.
   const stats = [
-    { label: 'Open requests', value: '—' },
+    { label: requests.urgentOpen.length ? `Open requests · ${requests.urgentOpen.length} urgent` : 'Open requests', value: requests.ready && !requests.error ? String(openRequests) : '—' },
     { label: restroom.paused ? 'Restroom queue · paused' : 'Restroom queue', value: restroom.ready && !restroom.error ? String(restroom.waitingCount) : '—' },
     { label: 'Orders to serve', value: orders.ready && !orders.error ? String(toServe) : '—' },
   ]

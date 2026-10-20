@@ -31,4 +31,6 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Crew assistance requests: see incoming requests (urgent first), mark On my way and Done (PRD Feature 8).
+Passenger flight info (basic version): flight status, destination airport and a ride (turbulence) outlook (PRD Feature 9).
+
+Next: refine existing features and make them work properly.

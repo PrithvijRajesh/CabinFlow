@@ -71,3 +71,11 @@
 - **2026-10-20** — Live request status on the Home assistance tile.
 - **2026-10-20** — Backend tested on a test flight ID; found and fixed "other" accepting an empty note (NULL check passes). Fix for existing DBs ships in 0010.
 - **2026-10-20** — Feature 7 approved and committed.
+
+## Feature 8 — Crew assistance requests
+
+- **2026-10-20** — Database: `assist_ack` / `assist_done` crew functions; fixed the Feature 7 note check for existing DBs (`supabase/migrations/0010`).
+- **2026-10-20** — Crew Requests screen: New (urgent first, then oldest) with On my way / Done, On the way, Recently closed.
+- **2026-10-20** — Passive urgent banner on all crew screens until someone is on the way; live Open requests stat on crew Home.
+- **2026-10-20** — Backend tested on a test flight ID (note check, ack, done from open or ack, no-ops on closed / cancelled / wrong flight); UI tested manually.
+- **2026-10-20** — Feature 8 approved and committed.
