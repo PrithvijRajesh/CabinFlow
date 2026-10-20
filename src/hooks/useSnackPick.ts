@@ -64,7 +64,7 @@ export function describePick(pick: SnackPick | null, items: CartItem[]): string 
   if (drink) {
     const opts = drink.serve === 'hot'
       ? [pick.cream ? 'cream' : 'black', pick.sugar ? `${pick.sugar} sugar` : null]
-      : [pick.ice === false ? 'no ice' : 'ice']
+      : drink.serve === 'plain' ? [] : [pick.ice === false ? 'no ice' : 'ice']
     parts.push([drink.name, ...opts.filter(Boolean)].join(' · '))
   }
   if (snack) parts.push(snack.name)

@@ -11,6 +11,7 @@ import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import { useCart } from '../hooks/useCart'
 import { useSnackPick } from '../hooks/useSnackPick'
+import { useCrewPicks } from '../hooks/useCrewPicks'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
 
@@ -28,6 +29,7 @@ export default function AppShell({ session, onSignOut }: Props) {
   const restroom = useRestroomQueue(flightId, seat)
   const cart = useCart(flightId)
   const picks = useSnackPick(flightId, seat)
+  const orders = useCrewPicks(flightId, session.role === 'crew')
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (
@@ -79,11 +81,11 @@ export default function AppShell({ session, onSignOut }: Props) {
           ) : session.role === 'crew' && active === 'bathroom' ? (
             <CrewRestroom />
           ) : session.role === 'crew' && active === 'snacks' ? (
-            <CrewCart cart={cart} />
+            <CrewCart cart={cart} orders={orders} />
           ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (
-            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} onOpen={setActive} />
+            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} onOpen={setActive} />
           )}
         </main>
       </div>

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import Icon from '../components/Icon'
 import type { Cart } from '../hooks/useCart'
+import type { CrewPicks } from '../hooks/useCrewPicks'
+import CrewOrders from './CrewOrders'
 import type { CartItem, ItemKind, Serve } from '../services/cart'
 import type { IconName } from '../components/Icon'
 
@@ -8,14 +10,35 @@ import type { IconName } from '../components/Icon'
 const ITEM_TYPES: { label: string; kind: ItemKind; serve: Serve | null; icon: IconName }[] = [
   { label: 'Cold drink', kind: 'drink', serve: 'cold', icon: 'cup' },
   { label: 'Hot drink', kind: 'drink', serve: 'hot', icon: 'cup' },
+  { label: 'Plain drink', kind: 'drink', serve: 'plain', icon: 'cup' },
   { label: 'Snack', kind: 'snack', serve: null, icon: 'cart' },
 ]
 
-export default function CrewCart({ cart }: { cart: Cart }) {
-  const out = cart.items.filter((i) => !i.in_stock).length
+export default function CrewCart({ cart, orders }: { cart: Cart; orders: CrewPicks }) {
+  // Orders is the everyday view; setup comes first only while the cart is empty.
+  const [tab, setTab] = useState<'orders' | 'setup' | null>(null)
+  const current = tab ?? (cart.ready && cart.items.length === 0 ? 'setup' : 'orders')
 
   return (
     <section className="crew-cart">
+      <div className="seg tabs" role="tablist" aria-label="Cart sections">
+        {(['orders', 'setup'] as const).map((t) => (
+          <button key={t} role="tab" aria-selected={current === t} className={current === t ? 'seg-btn active' : 'seg-btn'} onClick={() => setTab(t)}>
+            {t === 'orders' ? 'Orders' : 'Cart setup'}
+          </button>
+        ))}
+      </div>
+
+      {current === 'orders' ? <CrewOrders cart={cart} orders={orders} /> : <CartSetup cart={cart} />}
+    </section>
+  )
+}
+
+function CartSetup({ cart }: { cart: Cart }) {
+  const out = cart.items.filter((i) => !i.in_stock).length
+
+  return (
+    <>
       <div className="hero">
         <p className="eyebrow">Snack cart · complimentary</p>
         <h1 className="display">
@@ -45,7 +68,7 @@ export default function CrewCart({ cart }: { cart: Cart }) {
       )}
 
       <AddItem cart={cart} />
-    </section>
+    </>
   )
 }
 
@@ -59,7 +82,7 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
         <ul className="crew-rows">
           {items.map((item) => (
             <li key={item.id} className={item.in_stock ? 'cart-row' : 'cart-row is-out'}>
-              <span className="cart-name">{item.name}{item.serve === 'hot' && <span className="cart-tag">hot</span>}</span>
+              <span className="cart-name">{item.name}{(item.serve === 'hot' || item.serve === 'plain') && <span className="cart-tag">{item.serve}</span>}</span>
               <span className="crew-actions">
                 <button
                   className={item.in_stock ? 'btn-mini' : 'btn-mini btn-mini-out'}

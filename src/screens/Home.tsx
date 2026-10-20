@@ -6,6 +6,7 @@ import type { Session } from '../types'
 import type { RestroomQueue } from '../hooks/useRestroomQueue'
 import type { Cart } from '../hooks/useCart'
 import { describePick, type SnackPickState } from '../hooks/useSnackPick'
+import type { CrewPicks } from '../hooks/useCrewPicks'
 
 interface Props {
   session: Session
@@ -13,6 +14,7 @@ interface Props {
   restroom: RestroomQueue
   cart: Cart
   picks: SnackPickState
+  orders: CrewPicks
   onOpen: (id: string) => void
 }
 
@@ -21,9 +23,9 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export default function Home({ session, features, restroom, cart, picks, onOpen }: Props) {
+export default function Home({ session, features, restroom, cart, picks, orders, onOpen }: Props) {
   return session.role === 'crew'
-    ? <CrewHome features={features} restroom={restroom} onOpen={onOpen} />
+    ? <CrewHome features={features} restroom={restroom} orders={orders} onOpen={onOpen} />
     : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} onOpen={onOpen} />
 }
 
@@ -78,13 +80,14 @@ function PassengerHome({ seat, features, restroom, snacks, onOpen }: { seat: str
   )
 }
 
-function CrewHome({ features, restroom, onOpen }: { features: Feature[]; restroom: RestroomQueue; onOpen: (id: string) => void }) {
+function CrewHome({ features, restroom, orders, onOpen }: { features: Feature[]; restroom: RestroomQueue; orders: CrewPicks; onOpen: (id: string) => void }) {
+  const toServe = orders.picks.filter((p) => (p.drink_id || p.snack_id) && !p.served_at).length
   const { flight, remaining } = useFlight()
   // Counters stay blank until the features feeding them exist.
   const stats = [
     { label: 'Open requests', value: '—' },
     { label: restroom.paused ? 'Restroom queue · paused' : 'Restroom queue', value: restroom.ready && !restroom.error ? String(restroom.waitingCount) : '—' },
-    { label: 'Orders placed', value: '—' },
+    { label: 'Orders to serve', value: orders.ready && !orders.error ? String(toServe) : '—' },
   ]
 
   return (

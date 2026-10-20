@@ -65,12 +65,14 @@ function Picker({ cart, picks }: { cart: Cart; picks: SnackPickState }) {
       setDraft((d) => ({ ...d, snack_id: d.snack_id === item.id ? null : item.id }))
       return
     }
-    // Picking a drink resets its options to the defaults for hot or cold.
+    // Picking a drink resets its options to the defaults for its serve type.
     setDraft((d) => d.drink_id === item.id
       ? { ...d, drink_id: null, ice: null, cream: null, sugar: null }
       : item.serve === 'hot'
         ? { ...d, drink_id: item.id, ice: null, cream: false, sugar: 0 }
-        : { ...d, drink_id: item.id, ice: true, cream: null, sugar: null })
+        : item.serve === 'plain'
+          ? { ...d, drink_id: item.id, ice: null, cream: null, sugar: null }
+          : { ...d, drink_id: item.id, ice: true, cream: null, sugar: null })
   }
 
   return (
@@ -79,7 +81,7 @@ function Picker({ cart, picks }: { cart: Cart; picks: SnackPickState }) {
         <p className="eyebrow section-label">Drink</p>
         <ChoiceGrid items={drinks} selected={draft.drink_id} onChoose={choose} />
 
-        {drink && (
+        {drink && drink.serve !== 'plain' && (
           <div className="drink-options">
             {drink.serve === 'hot' ? (
               <>

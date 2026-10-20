@@ -199,3 +199,33 @@
 ### Known limits
 - Passengers can only read their own pick in the UI, but the table is readable with the publishable key (crew need it in Feature 6). Same auth limit as before.
 - Every hot drink gets cream/sugar options, even ones where they don't fit (e.g. hot chocolate).
+
+## Fix — Plain drinks
+
+- Some hot drinks don't take cream or sugar (hot chocolate). Drinks now have three serve types: **cold** (ice), **hot** (cream + sugar), **plain** (no options).
+- Migration 0007 only widens the `serve` check; `snack_pick_save` already stores no options for anything not hot or cold.
+
+## Feature 6 — Crew view of snack picks
+
+### What it does
+- The crew **Cart & Orders** screen has two tabs: **Orders** (default) and **Cart setup**.
+- **Load the cart:** totals of everything still to serve, one line per item with extras, e.g. "×4 Coffee · 2 cream · 5 sugar", "×3 Cola · 1 no ice". Crew stock the cart from this before going out.
+- **By seat, front to back:** "12A · Coffee · cream · 1 sugar + Pretzels", the list they work down the aisle with.
+- **Served:** one tap per seat dims the row and removes it from the totals. Tap again to undo. If interrupted, crew can see where they left off.
+- Crew Home shows a live "Orders to serve" count.
+
+### How it's implemented
+- **Migration 0008:** `snack_picks.served_at` + `snack_pick_served(flight, seat, served)`. `snack_pick_save` now clears `served_at`, so a changed pick shows up as a new order.
+- **Frontend:**
+  - `src/hooks/useCrewPicks.ts`: every seat's pick, live, sorted by row then letter. Only enabled for crew; passengers never load other seats.
+  - `src/screens/CrewOrders.tsx`: totals (`loadUp()`) and the by-seat list, reusing `describePick()` from Feature 5.
+  - `AppShell` owns the hook and passes it to the crew Cart screen and crew Home.
+
+### Why it matters
+- PRD Feature 6: crew know what passengers want ahead of time.
+- Totals turn many individual picks into one loading list. The by-seat list makes the cart run a hand-off instead of a conversation at every row.
+- Served is optional; the view is still useful if crew never tap it.
+
+### Known limits
+- One service round per flight. A second round would need a "start new service" reset.
+- Same auth limit as before: picks are readable with the publishable key.

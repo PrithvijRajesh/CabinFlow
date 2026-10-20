@@ -543,6 +543,16 @@ button:disabled { cursor: default; }
 .cart-tag { margin-left: 8px; padding: 2px 6px; border-radius: 6px; background: var(--paper-2); color: var(--accent); font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; vertical-align: middle; }
 .cart-row.is-out .cart-name { color: var(--ink-2); text-decoration: line-through; }
 .btn-mini-out { border-color: var(--danger); color: var(--danger); }
+.tabs { margin-bottom: 28px; }
+.total-row { display: grid; grid-template-columns: 48px auto 1fr; align-items: center; gap: 12px; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.total-row:last-child { border-bottom: none; }
+.total-row .crew-wait { text-align: right; }
+.total-count { font-family: var(--mono); font-size: 1.1rem; font-weight: 500; color: var(--accent); }
+.order-row { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 12px; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.order-row:last-child { border-bottom: none; }
+.order-text { font-size: 0.95rem; }
+.order-row.is-served .crew-seat, .order-row.is-served .order-text { color: var(--ink-2); opacity: 0.6; }
+.btn-mini-done { border-color: var(--ok); color: var(--ok); }
 .cart-add { margin-top: 28px; }
 .cart-add .section-label { margin: 0 0 12px; }
 .cart-add-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }

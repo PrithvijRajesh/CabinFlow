@@ -51,3 +51,15 @@
 - **2026-10-20** — `AppShell` now owns the cart and pick hooks (one realtime channel per flight).
 - **2026-10-20** — Backend tested on a test flight ID (option cleanup, wrong kind, out of stock, sugar range, item removal, clear, direct insert blocked); UI tested manually.
 - **2026-10-20** — Feature 5 approved and committed.
+
+## Fix — Plain drinks (Features 4–5)
+
+- **2026-10-20** — Third drink type `plain` (no ice / cream / sugar), for hot chocolate, milk, etc. Crew add form: Cold / Hot / Plain drink / Snack (`supabase/migrations/0007`).
+
+## Feature 6 — Crew view of snack picks
+
+- **2026-10-20** — Database: `served_at` on `snack_picks`, `snack_pick_served` function; a changed pick resets served (`supabase/migrations/0008`).
+- **2026-10-20** — Crew Cart & Orders screen split into **Orders | Cart setup** tabs.
+- **2026-10-20** — Orders: load-up totals of what's still to serve (with cream / sugar / no-ice counts), by-seat list front to back with Served toggle; live "Orders to serve" on crew Home.
+- **2026-10-20** — Backend tested on a test flight ID (plain drinks, invalid serve, served / unserved, reset on change).
+- **2026-10-20** — Feature 6 and plain-drink fix approved and committed.

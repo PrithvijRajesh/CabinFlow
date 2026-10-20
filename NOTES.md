@@ -3,9 +3,9 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
-- **Next:** Feature 6, crew see passengers' drink and snack picks ahead of service. Assistance requests are Features 7–8.
-- **Open question:** hot drinks without cream/sugar (e.g. hot chocolate). See FeatureAnalysis, Feature 5 limits.
+- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
+- **Next:** Features 7–8, assistance requests (passenger asks by type, crew manage them).
+- **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 
@@ -19,7 +19,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Privacy rule:** store preferences and usage, not people. Never show passengers other seats' info.
 
 ## How it works (quick map)
-- **Shared hooks live in `AppShell`** (restroom, cart, picks) and are passed down as props. Don't open a second realtime channel with the same name.
+- **Shared hooks live in `AppShell`** (restroom, cart, picks, crew orders) and are passed down as props. Don't open a second realtime channel with the same name.
 - **Features list:** `src/features.ts`. Each role's nav and home tiles come from it. A new feature = one entry + one screen.
 - **Flight data:** `src/context/FlightContext.tsx` holds the current flight (`useFlight()` gives `flight`, `flightId`, `progress`, `remaining`). `src/data/flight.ts` has `DEMO_FLIGHT`, the demo crew PIN (`1234`) and helpers.
 - **Edge Functions:** in `supabase/functions/`. Deploy with `supabase functions deploy <name>` (CLI is logged in and linked). Secrets are set in the dashboard.

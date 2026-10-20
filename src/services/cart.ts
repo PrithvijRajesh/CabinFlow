@@ -4,13 +4,13 @@ import { supabase } from '../lib/supabase'
 // for an onboard server without touching the UI.
 
 export type ItemKind = 'drink' | 'snack'
-export type Serve = 'hot' | 'cold'
+export type Serve = 'hot' | 'cold' | 'plain'
 
 export interface CartItem {
   id: string
   name: string
   kind: ItemKind
-  serve: Serve | null // drinks only: hot gets cream/sugar, cold gets ice
+  serve: Serve | null // drinks only: hot gets cream/sugar, cold gets ice, plain gets nothing
   in_stock: boolean
 }
 
