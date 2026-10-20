@@ -31,4 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Crew snack cart setup: flight attendants enter the drinks and snacks available on this flight (PRD Feature 4).
+Passenger snack and drink picks: passengers choose what they'd like from the crew's cart before service starts (PRD Feature 5).

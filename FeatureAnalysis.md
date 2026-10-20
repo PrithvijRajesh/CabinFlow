@@ -139,3 +139,33 @@
 - Crew PIN is checked in the browser only, so anyone with the publishable key could call the crew functions. Real crew login fixes this later.
 - A fixed 5-minute turn covers both "did they see it" and "how long they're gone".
 - **Planned improvement (post-MVP):** two-phase turn: 2 min to tap "I'm going" (else auto-skip), then no visible timer while in use, a passive "long visit" flag for crew at 10 min, and auto-release at 15 min.
+
+## Feature 4 — Crew snack cart setup
+
+### What it does
+- Crew set up what's on the cart for this flight. Everything is **complimentary**, so there are no prices.
+- **Load standard cart** fills a typical cart in one tap (10 drinks, 4 snacks). Crew then only adjust.
+- Items are grouped into **Drinks** and **Snacks**. Each can be toggled **In stock / Out** (out items are struck through) or removed.
+- **Add an item:** name + Drink/Snack. Duplicates are blocked ("Coffee" = "coffee").
+- **Add any missing standard items** restores anything removed by mistake.
+- Changes show up live on every screen watching the cart.
+
+### How it's implemented
+- **Migration 0005:**
+  - `cart_items` table: one row per item per flight (name, kind, in_stock). Unique on `(flight_id, lower(name))`, plus checks on kind and name length.
+  - Browser has read-only access; writes go through `cart_add`, `cart_set_stock`, `cart_remove` and `cart_load_standard` (`security definer`).
+  - The standard list lives in the database, so every cart starts the same. `created_at` is staggered per item so the list keeps its order.
+- **Frontend:**
+  - `src/services/cart.ts`: all cart backend calls (swap-out point for an onboard server).
+  - `src/hooks/useCart.ts`: live cart state + actions. Feature 5 reuses it read-only for the passenger menu.
+  - `src/screens/CrewCart.tsx`: the crew console screen.
+
+### Why it matters
+- PRD Feature 4: crew input the snack cart items.
+- It's the source list for Feature 5 (passengers pick) and Feature 6 (crew see picks ahead of time).
+- The one-tap standard cart keeps crew setup to seconds, in line with "don't make crew work harder".
+
+### Known limits
+- One cart per flight (no per-cabin carts).
+- No quantities, just in stock / out.
+- Same crew-auth limit as Feature 3: anyone with the publishable key could call the cart functions.

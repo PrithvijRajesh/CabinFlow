@@ -3,8 +3,8 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
-- **Next:** Feature 4, crew enter the snack cart items (drinks and snacks available on this flight).
+- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
+- **Next:** Feature 5, passengers pick their drink and snack preference from the crew's cart.
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 
@@ -30,6 +30,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **`.env.local`** (gitignored) needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Never put the secret key in it.
 - **Restart `npm run dev`** after changing `.env.local`.
 - **`.env.local` uses `KEY = value` with spaces.** Vite accepts it but shell `source` doesn't. `VITE_SUPABASE_URL` ends in `/rest/v1/`; the client keeps only the origin.
+- **SQL `with ordinality` only works on set-returning functions** (e.g. `unnest`), not on a `VALUES` list. There's no local Postgres, so the SQL Editor is the first real syntax check.
 - **`supabase login` needs a real terminal.** It fails through the `!` prefix (non-TTY).
 - **New tables need explicit `grant select ... to anon`** (see migration 0002). Otherwise you get "permission denied".
 

@@ -504,6 +504,25 @@ button:disabled { cursor: default; }
 .btn-mini:disabled { opacity: 0.5; }
 .btn-mini-danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
 
+/* ---------- Crew snack cart ---------- */
+.cart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.cart-empty { padding: 28px; background: var(--paper); border: 1px dashed var(--line); border-radius: 18px; }
+.cart-empty .now-sub { margin: 0; }
+.cart-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.cart-row:last-child { border-bottom: none; }
+.cart-name { font-weight: 500; }
+.cart-row.is-out .cart-name { color: var(--ink-2); text-decoration: line-through; }
+.btn-mini-out { border-color: var(--danger); color: var(--danger); }
+.cart-add { margin-top: 28px; }
+.cart-add .section-label { margin: 0 0 12px; }
+.cart-add-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.cart-add-row .lookup-input { flex: 1; min-width: 180px; }
+.seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.seg-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 9px; color: var(--ink-2); font-weight: 600; font-size: 0.9rem; }
+.seg-btn.active { background: var(--paper-2); color: var(--accent); }
+.link-btn { margin-top: 14px; padding: 0; color: var(--accent); font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.link-btn:disabled { opacity: 0.5; }
+
 @keyframes glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.08); } }
 
 /* ---------- Motion ---------- */
@@ -524,7 +543,7 @@ button:disabled { cursor: default; }
   .console-body { grid-template-columns: 1fr; }
   .bento { grid-template-columns: 1fr 1fr; }
   .tile-flight { grid-column: span 1; }
-  .restroom-grid, .crew-grid { grid-template-columns: 1fr; }
+  .restroom-grid, .crew-grid, .cart-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {

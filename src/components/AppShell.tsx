@@ -5,6 +5,7 @@ import Home from '../screens/Home'
 import ComingSoon from '../screens/ComingSoon'
 import Restroom from '../screens/Restroom'
 import CrewRestroom from '../screens/CrewRestroom'
+import CrewCart from '../screens/CrewCart'
 import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import FlightStrip from './FlightStrip'
@@ -69,6 +70,8 @@ export default function AppShell({ session, onSignOut }: Props) {
             <Restroom queue={restroom} />
           ) : session.role === 'crew' && active === 'bathroom' ? (
             <CrewRestroom />
+          ) : session.role === 'crew' && active === 'snacks' ? (
+            <CrewCart />
           ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (

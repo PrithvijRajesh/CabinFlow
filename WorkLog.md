@@ -34,3 +34,11 @@
 - **2026-10-20** — Passenger notices for crew-ended turns and paused line; live restroom count on crew Home.
 - **2026-10-20** — Backend scenario tested on a test flight ID (all actions, pause/resume, invalid action); UI tested manually with crew + two passengers.
 - **2026-10-20** — Feature 3 approved and committed. Two-phase turn (acknowledge + in use) logged as a post-MVP improvement.
+
+## Feature 4 — Crew snack cart setup
+
+- **2026-10-20** — Database: `cart_items` table + `cart_add` / `cart_set_stock` / `cart_remove` / `cart_load_standard` functions, realtime enabled (`supabase/migrations/0005`).
+- **2026-10-20** — Crew Cart & Orders screen: load standard cart, Drinks/Snacks lists, in stock / out toggle, remove, add item with duplicate check, restore missing standard items.
+- **2026-10-20** — Fixed standard cart loading in random order (staggered `created_at` via `unnest ... with ordinality`).
+- **2026-10-20** — Backend tested on a test flight ID (load twice, trim, case-insensitive duplicates, stock, remove, bad input, direct insert blocked, wrong flight); UI tested manually.
+- **2026-10-20** — Feature 4 approved and committed.
