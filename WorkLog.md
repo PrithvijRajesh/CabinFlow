@@ -63,3 +63,11 @@
 - **2026-10-20** — Orders: load-up totals of what's still to serve (with cream / sugar / no-ice counts), by-seat list front to back with Served toggle; live "Orders to serve" on crew Home.
 - **2026-10-20** — Backend tested on a test flight ID (plain drinks, invalid serve, served / unserved, reset on change).
 - **2026-10-20** — Feature 6 and plain-drink fix approved and committed.
+
+## Feature 7 — Passenger assistance requests
+
+- **2026-10-20** — Database: `assistance_requests` table (one open request per type per seat, note only and required on "Something else") + `assist_request` / `assist_cancel`, realtime enabled (`supabase/migrations/0009`).
+- **2026-10-20** — Passenger Assistance screen: 7 request types, tap → confirm → send, urgent "Feeling unwell" with call-button reminder, required note on "Something else", live status (Sent → Crew is on the way → Done), cancel.
+- **2026-10-20** — Live request status on the Home assistance tile.
+- **2026-10-20** — Backend tested on a test flight ID; found and fixed "other" accepting an empty note (NULL check passes). Fix for existing DBs ships in 0010.
+- **2026-10-20** — Feature 7 approved and committed.

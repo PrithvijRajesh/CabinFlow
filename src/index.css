@@ -533,6 +533,37 @@ button:disabled { cursor: default; }
 .snack-summary-text { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; }
 .btn-quiet { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; padding-inline: 10px; }
 
+/* ---------- Passenger assistance ---------- */
+.assist-mine { margin-bottom: 28px; max-width: 880px; }
+.assist-mine .section-label, .assist > .section-label { margin: 0 0 12px; }
+.assist-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.assist-item { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 14px; }
+.assist-item.is-sent { border-left-color: var(--sky); }
+.assist-item.is-ack { border-left-color: var(--accent); }
+.assist-item.is-done { border-left-color: var(--ok); }
+.assist-item.is-done, .assist-item.is-cancelled { opacity: 0.65; }
+.assist-item-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.assist-item-label { font-weight: 600; }
+.assist-item-note { font-size: 0.92rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.assist-item-meta { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-2); }
+.pill { padding: 5px 10px; border-radius: 99px; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; background: var(--paper-2); color: var(--ink-2); }
+.pill-sent { color: var(--sky); }
+.pill-ack { background: var(--accent); color: var(--accent-ink); animation: pulse 2.4s infinite; }
+.pill-done { color: var(--ok); }
+.assist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; max-width: 880px; }
+.assist-tile { display: flex; flex-direction: column; gap: 6px; min-height: 104px; padding: 18px 20px; text-align: left; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+.assist-tile:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow); border-color: transparent; }
+.assist-tile:disabled { opacity: 0.5; }
+.assist-tile.is-urgent { border-color: var(--accent); }
+.assist-tile.is-urgent .assist-tile-label { color: var(--accent); }
+.assist-tile-label { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; letter-spacing: -0.01em; }
+.assist-tile-hint { font-size: 0.9rem; color: var(--ink-2); }
+.assist .queue-card { max-width: 640px; min-height: 0; }
+.assist-confirm-title { margin: 6px 0 0; font-family: var(--serif); font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 500; letter-spacing: -0.02em; }
+.assist-note { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.assist-note textarea { padding: 12px 14px; font: inherit; font-size: 1rem; color: var(--ink); background: var(--paper); border: none; border-radius: 12px; resize: none; }
+.assist-count { align-self: flex-end; font-family: var(--mono); font-size: 0.75rem; color: rgba(248, 244, 236, 0.7); }
+
 /* ---------- Crew snack cart ---------- */
 .cart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 .cart-empty { padding: 28px; background: var(--paper); border: 1px dashed var(--line); border-radius: 18px; }

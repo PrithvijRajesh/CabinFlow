@@ -7,6 +7,8 @@ import type { RestroomQueue } from '../hooks/useRestroomQueue'
 import type { Cart } from '../hooks/useCart'
 import { describePick, type SnackPickState } from '../hooks/useSnackPick'
 import type { CrewPicks } from '../hooks/useCrewPicks'
+import type { Assistance } from '../hooks/useAssistance'
+import { ASSIST_TYPES } from '../services/assistance'
 
 interface Props {
   session: Session
@@ -15,6 +17,7 @@ interface Props {
   cart: Cart
   picks: SnackPickState
   orders: CrewPicks
+  assist: Assistance
   onOpen: (id: string) => void
 }
 
@@ -23,10 +26,10 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export default function Home({ session, features, restroom, cart, picks, orders, onOpen }: Props) {
+export default function Home({ session, features, restroom, cart, picks, orders, assist, onOpen }: Props) {
   return session.role === 'crew'
     ? <CrewHome features={features} restroom={restroom} orders={orders} onOpen={onOpen} />
-    : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} onOpen={onOpen} />
+    : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} help={assistStatus(assist)} onOpen={onOpen} />
 }
 
 // Live one-line status for the restroom tile.
@@ -44,7 +47,19 @@ function snackStatus(cart: Cart, picks: SnackPickState) {
   return describePick(picks.pick, cart.items) ?? 'Pick before the cart comes'
 }
 
-function PassengerHome({ seat, features, restroom, snacks, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; snacks: string | null; onOpen: (id: string) => void }) {
+// Live one-line status for the assistance tile.
+function assistStatus(a: Assistance) {
+  if (!a.ready || a.error || a.active.length === 0) return null
+  if (a.active.length > 1) {
+    const coming = a.active.filter((r) => r.status === 'ack').length
+    return `${a.active.length} requests${coming ? ` · ${coming} on the way` : ''}`
+  }
+  const r = a.active[0]
+  const label = ASSIST_TYPES.find((t) => t.type === r.type)?.label ?? 'Request'
+  return `${label}: ${r.status === 'ack' ? 'crew on the way' : 'sent'}`
+}
+
+function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; snacks: string | null; help: string | null; onOpen: (id: string) => void }) {
   const live = restroomStatus(restroom)
   const { flight, remaining } = useFlight()
 
@@ -70,6 +85,7 @@ function PassengerHome({ seat, features, restroom, snacks, onOpen }: { seat: str
             <span className="tile-desc">{f.description}</span>
             {f.id === 'bathroom' && live && <span className="tile-live"><span className="led" /> {live}</span>}
             {f.id === 'snacks' && snacks && <span className="tile-live"><span className="led" /> {snacks}</span>}
+            {f.id === 'assistance' && help && <span className="tile-live"><span className="led" /> {help}</span>}
             <span className="tile-foot">Open <Icon name="arrow" size={16} /></span>
           </button>
         ))}

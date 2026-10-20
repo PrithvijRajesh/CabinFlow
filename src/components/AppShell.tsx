@@ -7,11 +7,13 @@ import Restroom from '../screens/Restroom'
 import CrewRestroom from '../screens/CrewRestroom'
 import CrewCart from '../screens/CrewCart'
 import Snacks from '../screens/Snacks'
+import Assistance from '../screens/Assistance'
 import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import { useCart } from '../hooks/useCart'
 import { useSnackPick } from '../hooks/useSnackPick'
 import { useCrewPicks } from '../hooks/useCrewPicks'
+import { useAssistance } from '../hooks/useAssistance'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
 
@@ -30,6 +32,7 @@ export default function AppShell({ session, onSignOut }: Props) {
   const cart = useCart(flightId)
   const picks = useSnackPick(flightId, seat)
   const orders = useCrewPicks(flightId, session.role === 'crew')
+  const assist = useAssistance(flightId, seat)
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (
@@ -78,6 +81,8 @@ export default function AppShell({ session, onSignOut }: Props) {
             <Restroom queue={restroom} />
           ) : session.role === 'passenger' && active === 'snacks' ? (
             <Snacks cart={cart} picks={picks} />
+          ) : session.role === 'passenger' && active === 'assistance' ? (
+            <Assistance assist={assist} />
           ) : session.role === 'crew' && active === 'bathroom' ? (
             <CrewRestroom />
           ) : session.role === 'crew' && active === 'snacks' ? (
@@ -85,7 +90,7 @@ export default function AppShell({ session, onSignOut }: Props) {
           ) : current ? (
             <ComingSoon feature={current} role={session.role} />
           ) : (
-            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} onOpen={setActive} />
+            <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} assist={assist} onOpen={setActive} />
           )}
         </main>
       </div>

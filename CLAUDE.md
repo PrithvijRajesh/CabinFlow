@@ -31,4 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Assistance requests: passengers pick a type of help and send a request; crew see and manage requests (PRD Features 7–8).
+Crew assistance requests: see incoming requests (urgent first), mark On my way and Done (PRD Feature 8).

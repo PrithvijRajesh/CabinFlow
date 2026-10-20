@@ -229,3 +229,34 @@
 ### Known limits
 - One service round per flight. A second round would need a "start new service" reset.
 - Same auth limit as before: picks are readable with the publishable key.
+
+## Feature 7 — Passenger assistance requests
+
+### What it does
+- Passengers pick what they need from seven types: **Feeling unwell** (urgent), **Blanket or pillow**, **Water or a drink**, **Help with a bag**, **Spill or cleanup**, **Seat or screen problem**, **Something else**.
+- Tap → confirm → **Send to crew**, so a stray tap doesn't send anything.
+- **Feeling unwell** reminds the passenger to press the call button for emergencies, and is marked urgent for crew.
+- **Something else** asks for a short note (required, 100 chars). The other types need no typing.
+- Several requests per seat, but **one open request per type**.
+- **Your requests** shows live status (**Sent → Crew is on the way → Done / Cancelled**) and lets the passenger cancel. Closed requests stay visible for 15 minutes.
+- The Home tile shows live status.
+
+### How it's implemented
+- **Migration 0009:**
+  - `assistance_requests`: seat, type, note, status (`open → ack → done | cancelled`), and created / ack / closed timestamps.
+  - A partial unique index enforces one open request per type per seat.
+  - A check makes the note required on `other` and not allowed elsewhere. `note is not null` is needed explicitly: a check that evaluates to NULL passes.
+  - `assist_request` (repeat sends do nothing) and `assist_cancel` (own seat only).
+- **Frontend:**
+  - `src/services/assistance.ts` holds the calls and `ASSIST_TYPES` (labels, hints, urgent flag), shared with the crew screen.
+  - `src/hooks/useAssistance.ts`: this seat's requests, live, re-checked each minute so old ones drop off.
+  - `src/screens/Assistance.tsx`: tiles, confirm card, and request list.
+
+### Why it matters
+- PRD Feature 7: passengers say exactly what they need, so crew bring the right thing on the first trip instead of walking over to ask.
+- Fewer call-button round trips means less cabin movement.
+- Type + timestamps give the "how often and what type of assistance" stats the PRD allows, without storing anything about the person.
+
+### Known limits
+- Same auth limit as before: anyone with the publishable key could read requests or send them for any seat.
+- It doesn't replace the physical call button, and says so.
