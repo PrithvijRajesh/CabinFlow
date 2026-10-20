@@ -31,6 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Flight lookup by flight number on the boarding-pass welcome screen (real flight data via AeroDataBox).
-
-Next: Crew restroom line view: see the queue and confirm or override whose turn it is.
+Crew snack cart setup: flight attendants enter the drinks and snacks available on this flight (PRD Feature 4).

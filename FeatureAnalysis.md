@@ -104,3 +104,38 @@
 - AeroDataBox free tier has a monthly request cap; the cache helps but doesn't remove it.
 - No turbulence data (PRD out-of-scope #4: no cockpit readings).
 - The function is public (no login), protected only by input validation and the cache.
+
+## Feature 3 — Crew restroom queue
+
+### What it does
+- Crew see the live line **with seat numbers**: who is called now (with the 5-min countdown) and who is waiting, in order, with wait times.
+- Crew controls (manual overrides; the line runs on its own without them):
+  - **Confirm back**: the called seat is done, next seat is called.
+  - **No-show**: skip the called seat, next seat is called.
+  - **Call now**: a waiting seat goes next; the currently called seat returns to its place.
+  - **Remove**: take a seat out of the line.
+  - **Pause / Resume line**: for the seatbelt sign or turbulence. While paused no one is called; a called seat goes back to its place. Resume calls the next seat right away.
+- Passengers see a notice when the crew ends their turn, removes them, or pauses the line. They still never see other seats.
+- Crew Home shows the live line count (and "paused").
+
+### How it's implemented
+- **Migration 0004:**
+  - `restroom_line_state` table: one row per flight with `paused`. Readable by the app, realtime enabled.
+  - `restroom_crew_action(flight, spot_id, action)` and `restroom_set_paused(flight, paused)`: `security definer` functions using the same per-flight lock as Feature 2, so only one seat is ever called.
+  - `restroom_tick` now returns early (calls no one) while paused.
+  - `ended_by = 'crew'` marks crew actions, so the passenger sees "the crew ended your turn" instead of "timed out".
+- **Frontend:**
+  - `src/hooks/useCrewRestroomQueue.ts`: crew-only hook that fetches seats, pause state and exposes `act()` / `setPaused()`.
+  - `src/screens/CrewRestroom.tsx`: the console screen.
+  - `useRestroomQueue` now also returns `paused` (used by the passenger screen and the crew Home stat).
+  - The realtime subscription listens to both tables.
+
+### Why it matters
+- PRD Feature 3: crew can double-check and correct whose turn it is.
+- Pause line handles the most common real-world interruption (seatbelt sign) without anyone standing in the aisle.
+- Designed to be glanced at, not babysat: the line advances automatically, crew only step in when something looks wrong.
+
+### Known limits
+- Crew PIN is checked in the browser only, so anyone with the publishable key could call the crew functions. Real crew login fixes this later.
+- A fixed 5-minute turn covers both "did they see it" and "how long they're gone".
+- **Planned improvement (post-MVP):** two-phase turn: 2 min to tap "I'm going" (else auto-skip), then no visible timer while in use, a passive "long visit" flag for crew at 10 min, and auto-release at 15 min.

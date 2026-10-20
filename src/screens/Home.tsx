@@ -19,7 +19,7 @@ function greeting() {
 
 export default function Home({ session, features, restroom, onOpen }: Props) {
   return session.role === 'crew'
-    ? <CrewHome features={features} onOpen={onOpen} />
+    ? <CrewHome features={features} restroom={restroom} onOpen={onOpen} />
     : <PassengerHome seat={session.seat} features={features} restroom={restroom} onOpen={onOpen} />
 }
 
@@ -66,12 +66,12 @@ function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; fea
   )
 }
 
-function CrewHome({ features, onOpen }: { features: Feature[]; onOpen: (id: string) => void }) {
+function CrewHome({ features, restroom, onOpen }: { features: Feature[]; restroom: RestroomQueue; onOpen: (id: string) => void }) {
   const { flight, remaining } = useFlight()
   // Counters stay blank until the features feeding them exist.
   const stats = [
     { label: 'Open requests', value: '—' },
-    { label: 'Restroom queue', value: '—' },
+    { label: restroom.paused ? 'Restroom queue · paused' : 'Restroom queue', value: restroom.ready && !restroom.error ? String(restroom.waitingCount) : '—' },
     { label: 'Orders placed', value: '—' },
   ]
 

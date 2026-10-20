@@ -17,8 +17,11 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
   const inLine = ahead !== null
 
   // Recent outcomes worth telling the passenger about.
-  const timedOut = !inLine && mySpot?.status === 'skipped' && minutesAgo(mySpot.ended_at) < 15
-  const justBack = !inLine && mySpot?.status === 'done' && minutesAgo(mySpot.ended_at) < 2
+  const recent = !inLine && mySpot ? minutesAgo(mySpot.ended_at) : Infinity
+  const byCrew = mySpot?.ended_by === 'crew'
+  const timedOut = !byCrew && mySpot?.status === 'skipped' && recent < 15
+  const crewEnded = byCrew && (mySpot?.status === 'skipped' || mySpot?.status === 'left') && recent < 15
+  const justBack = mySpot?.status === 'done' && recent < 2
 
   return (
     <section className="restroom">
@@ -32,7 +35,15 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
       {timedOut && (
         <p className="notice notice-warn">Your turn timed out after 5 minutes, so the next person was called. You can join again anytime.</p>
       )}
+      {crewEnded && (
+        <p className="notice notice-warn">
+          {mySpot?.status === 'skipped' ? 'The crew ended your turn.' : 'The crew removed you from the line.'} You can join again anytime.
+        </p>
+      )}
       {justBack && <p className="notice notice-ok">Welcome back. Your spot has been cleared.</p>}
+      {queue.paused && (
+        <p className="notice notice-warn">The crew has paused the line, usually for the seatbelt sign. {inLine ? 'You keep your place.' : 'You can still save a spot.'}</p>
+      )}
 
       <div className="restroom-grid">
         {!ready ? (

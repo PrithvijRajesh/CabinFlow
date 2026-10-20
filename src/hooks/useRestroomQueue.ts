@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  fetchActiveQueue, fetchMySpot, finishTurn, joinQueue, leaveQueue,
+  fetchActiveQueue, fetchMySpot, fetchPaused, finishTurn, joinQueue, leaveQueue,
   subscribeQueue, tickQueue, type MySpot, type QueueSpot,
 } from '../services/restroomQueue'
 import { supabase } from '../lib/supabase'
 
 // Supabase errors are plain objects with a message, not Error instances.
-function errorText(e: unknown, fallback: string) {
+export function errorText(e: unknown, fallback: string) {
   const msg = (e as { message?: unknown } | null)?.message
   return typeof msg === 'string' && msg ? msg : fallback
 }
@@ -18,6 +18,7 @@ export interface RestroomQueue {
   ready: boolean
   error: string | null
   waitingCount: number // everyone in line, including whoever is called
+  paused: boolean // crew paused the line (seatbelt sign)
   mySpot: MySpot | null
   ahead: number | null // spots in front of me, null if not in line
   isMyTurn: boolean
@@ -32,18 +33,21 @@ export interface RestroomQueue {
 export function useRestroomQueue(flightId: string, seat: string | null): RestroomQueue {
   const [active, setActive] = useState<QueueSpot[]>([])
   const [mySpot, setMySpot] = useState<MySpot | null>(null)
+  const [paused, setPaused] = useState(false)
   const [ready, setReady] = useState(!supabase)
   const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
     try {
-      const [queue, mine] = await Promise.all([
+      const [queue, mine, isPaused] = await Promise.all([
         fetchActiveQueue(flightId),
         seat ? fetchMySpot(flightId, seat) : Promise.resolve(null),
+        fetchPaused(flightId),
       ])
       setActive(queue)
       setMySpot(mine)
+      setPaused(isPaused)
       setError(null)
     } catch (e) {
       setError(errorText(e, 'Could not load the restroom line.'))
@@ -81,6 +85,7 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
     ready,
     error,
     waitingCount: active.length,
+    paused,
     mySpot,
     ahead: index >= 0 ? index : null,
     isMyTurn: mySpot?.status === 'called',

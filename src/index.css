@@ -470,6 +470,40 @@ button:disabled { cursor: default; }
 .tile-live { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; font-family: var(--mono); font-size: 0.82rem; }
 .tile-bathroom .tile-live .led { background: #ffb59c; box-shadow: 0 0 8px #ffb59c; }
 
+/* ---------- Crew restroom queue ---------- */
+.line-control { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; padding: 14px 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+.line-state { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+.line-state .led { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.line-control.paused { border-color: var(--danger); }
+.line-control.paused .line-state { color: var(--danger); }
+.line-control.paused .led { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.btn-outline { border-color: var(--line); color: var(--ink); background: transparent; }
+.btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+.crew-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; }
+.now-card { display: flex; flex-direction: column; gap: 6px; padding: 28px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; }
+.now-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+.now-seat { margin: 8px 0 0; font-family: var(--mono); font-size: clamp(3.5rem, 8vw, 5rem); font-weight: 500; line-height: 1; color: var(--accent); }
+.now-seat.dim { color: var(--ink-2); }
+.now-sub { margin: 8px 0 0; color: var(--ink-2); }
+.now-sub strong { font-family: var(--mono); font-weight: 500; color: var(--ink); }
+.now-card .turn-bar { background: var(--paper-2); }
+.now-card .turn-bar span { background: var(--accent); }
+
+.crew-list .section-label { margin: 0 0 12px; }
+.crew-empty { margin: 0; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--ink-2); font-family: var(--mono); font-size: 0.85rem; }
+.crew-rows { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.crew-row { display: grid; grid-template-columns: 32px 64px 1fr auto; align-items: center; gap: 14px; padding: 12px 16px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.crew-row:last-child { border-bottom: none; }
+.crew-pos { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); }
+.crew-seat { font-family: var(--mono); font-size: 1.35rem; font-weight: 500; }
+.crew-wait { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); }
+.crew-actions { display: inline-flex; gap: 6px; }
+.btn-mini { display: inline-flex; align-items: center; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper-2); color: var(--ink); font-size: 0.85rem; font-weight: 600; }
+.btn-mini:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn-mini:disabled { opacity: 0.5; }
+.btn-mini-danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
 @keyframes glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.08); } }
 
 /* ---------- Motion ---------- */
@@ -490,7 +524,7 @@ button:disabled { cursor: default; }
   .console-body { grid-template-columns: 1fr; }
   .bento { grid-template-columns: 1fr 1fr; }
   .tile-flight { grid-column: span 1; }
-  .restroom-grid { grid-template-columns: 1fr; }
+  .restroom-grid, .crew-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -518,4 +552,7 @@ button:disabled { cursor: default; }
   .module { grid-template-columns: 28px 1fr auto; }
   .module-index { display: none; }
   .queue-card { padding: 24px; min-height: 0; }
+  .line-control { flex-direction: column; align-items: stretch; }
+  .crew-row { grid-template-columns: 56px 1fr auto; }
+  .crew-pos { display: none; }
 }

@@ -26,3 +26,11 @@
 - **2026-10-20** — Welcome screen: flight number lookup, "Use demo" reset, flight saved on the device. Flight strip, Home and restroom queue now use the selected flight.
 - **2026-10-20** — Function deployed and tested: valid (UA1, "dl 1"), unknown (ZZ9999 → 404) and invalid (abc → 400) numbers; UI tested manually.
 - **2026-10-20** — Flight lookup approved and committed.
+
+## Feature 3 — Crew restroom queue
+
+- **2026-10-20** — Database: `restroom_crew_action` (done / skip / call now / remove), `restroom_line_state` + `restroom_set_paused` (pause line), `ended_by` column; `restroom_tick` respects pause (`supabase/migrations/0004`).
+- **2026-10-20** — Crew Restroom Queue screen: now-called card with countdown, waiting list with wait times, Call now / Remove, Confirm back / No-show, Pause / Resume line.
+- **2026-10-20** — Passenger notices for crew-ended turns and paused line; live restroom count on crew Home.
+- **2026-10-20** — Backend scenario tested on a test flight ID (all actions, pause/resume, invalid action); UI tested manually with crew + two passengers.
+- **2026-10-20** — Feature 3 approved and committed. Two-phase turn (acknowledge + in use) logged as a post-MVP improvement.

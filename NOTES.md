@@ -3,8 +3,10 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
-- **Next:** Feature 3, crew view of the restroom line, with the power to confirm or override whose turn it is.
+- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
+- **Next:** Feature 4, crew enter the snack cart items (drinks and snacks available on this flight).
+- **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
+- **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 
 ## Key decisions
 - **Customer:** sold to seatback IFE makers (Panasonic, Thales, Collins). It runs on seatback screens, so:
