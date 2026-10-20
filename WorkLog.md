@@ -18,3 +18,11 @@
 - **2026-10-20** — App-wide "your turn" banner and live status on the Home restroom tile.
 - **2026-10-20** — Tested end-to-end with two passengers (12A, 23C) in separate tabs against the live database.
 - **2026-10-20** — Feature 2 approved and committed.
+
+## Flight lookup (real flight data)
+
+- **2026-10-20** — AeroDataBox approved as flight data provider, called through a Supabase Edge Function so the key stays server-side.
+- **2026-10-20** — Edge Function `flight-lookup` + `flight_cache` table (10-min cache to save API quota, `supabase/migrations/0003`).
+- **2026-10-20** — Welcome screen: flight number lookup, "Use demo" reset, flight saved on the device. Flight strip, Home and restroom queue now use the selected flight.
+- **2026-10-20** — Function deployed and tested: valid (UA1, "dl 1"), unknown (ZZ9999 → 404) and invalid (abc → 400) numbers; UI tested manually.
+- **2026-10-20** — Flight lookup approved and committed.

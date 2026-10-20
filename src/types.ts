@@ -6,10 +6,13 @@ export type Session =
 
 export interface FlightInfo {
   flightNumber: string
+  airline: string
+  aircraft: string
+  status: string // AeroDataBox status, e.g. EnRoute, Departed, Arrived, Delayed
   origin: { code: string; city: string }
   destination: { code: string; city: string }
-  departureTime: string
-  arrivalTime: string
-  progress: number // 0–1
-  timeRemaining: string
+  departureTime: string // local HH:MM at origin
+  arrivalTime: string // local HH:MM at destination
+  departureUtc: string | null
+  arrivalUtc: string | null
 }

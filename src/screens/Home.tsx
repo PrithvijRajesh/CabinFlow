@@ -1,4 +1,4 @@
-import { FLIGHT } from '../data/flight'
+import { useFlight } from '../context/useFlight'
 import FlightStrip from '../components/FlightStrip'
 import Icon from '../components/Icon'
 import type { Feature } from '../features'
@@ -33,11 +33,12 @@ function restroomStatus(q: RestroomQueue) {
 
 function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; onOpen: (id: string) => void }) {
   const live = restroomStatus(restroom)
+  const { flight, remaining } = useFlight()
 
   return (
     <section className="home">
       <div className="hero">
-        <p className="eyebrow">{FLIGHT.flightNumber} · {FLIGHT.timeRemaining} to go</p>
+        <p className="eyebrow">{flight.flightNumber}{remaining && ` · ${remaining === 'Landed' ? 'landed' : `${remaining} to go`}`}</p>
         <h1 className="display">
           {greeting()}, <em>{seat}</em>.
         </h1>
@@ -66,6 +67,7 @@ function PassengerHome({ seat, features, restroom, onOpen }: { seat: string; fea
 }
 
 function CrewHome({ features, onOpen }: { features: Feature[]; onOpen: (id: string) => void }) {
+  const { flight, remaining } = useFlight()
   // Counters stay blank until the features feeding them exist.
   const stats = [
     { label: 'Open requests', value: '—' },
@@ -77,8 +79,8 @@ function CrewHome({ features, onOpen }: { features: Feature[]; onOpen: (id: stri
     <section className="home">
       <div className="hero">
         <p className="eyebrow">Cabin overview</p>
-        <h1 className="display">{FLIGHT.flightNumber} <span className="dim">{FLIGHT.origin.code} → {FLIGHT.destination.code}</span></h1>
-        <p className="lede">{FLIGHT.timeRemaining} remaining · arriving {FLIGHT.arrivalTime}</p>
+        <h1 className="display">{flight.flightNumber} <span className="dim">{flight.origin.code} → {flight.destination.code}</span></h1>
+        <p className="lede">{remaining === 'Landed' ? 'Landed' : `${remaining} remaining`} · arriving {flight.arrivalTime}</p>
       </div>
 
       <div className="stats">

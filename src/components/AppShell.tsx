@@ -4,7 +4,7 @@ import type { Session } from '../types'
 import Home from '../screens/Home'
 import ComingSoon from '../screens/ComingSoon'
 import Restroom from '../screens/Restroom'
-import { FLIGHT_ID } from '../data/flight'
+import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
@@ -18,7 +18,8 @@ export default function AppShell({ session, onSignOut }: Props) {
   const [active, setActive] = useState('home')
   const features = FEATURES[session.role]
   const current = features.find((f) => f.id === active)
-  const restroom = useRestroomQueue(FLIGHT_ID, session.role === 'passenger' ? session.seat : null)
+  const { flightId } = useFlight()
+  const restroom = useRestroomQueue(flightId, session.role === 'passenger' ? session.seat : null)
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
 
   return (

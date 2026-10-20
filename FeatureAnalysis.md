@@ -74,3 +74,33 @@
 - No real login: anyone with the publishable key could read the queue table directly (seat + times), even though the UI never shows it.
 - Crew controls (seeing the line, overriding whose turn it is) are Feature 3.
 - ⚠️ Patent risk: Collins/B/E holds US11958606B2 (seatback restroom queue). Review before selling.
+
+## Flight lookup (real flight data)
+
+### What it does
+- On the welcome (boarding pass) screen, enter a flight number like `UA 1` and tap **Load flight**.
+- The pass, top bar, Home and flight strip switch to that real flight: route, airline, aircraft, times and status.
+- Progress and "time to go" are calculated live from the real departure and arrival times.
+- The flight is remembered on the device. **Use demo** switches back to the mock flight `CF 482`.
+- Clear errors for unknown flights and bad formats.
+
+### How it's implemented
+- **Edge Function (`supabase/functions/flight-lookup`):** runs on Supabase's servers and calls AeroDataBox with the secret key `AERODATABOX_RAPIDAPI_KEY`. The browser never sees the key.
+  - Validates the number, picks the flight closest to now (AeroDataBox can return yesterday's and today's), and reduces it to our `FlightInfo` shape.
+  - `verify_jwt = false` in `supabase/config.toml`, because publishable keys aren't JWTs.
+- **Cache (`flight_cache`, migration 0003):** results are reused for 10 minutes so repeated lookups don't burn API quota. Only the function (service role) can read it; the browser has no grants.
+- **Frontend:**
+  - `src/services/flightLookup.ts` calls the function (same swap-out pattern as the restroom service).
+  - `src/context/FlightContext.tsx` holds the current flight for the whole app, saves it to `localStorage`, and ticks progress every minute.
+  - `src/data/flight.ts` now has `DEMO_FLIGHT`, `flightId()`, `flightProgress()` and `statusLabel()`.
+- **Flight ID** now uses the real departure date, so each flight's restroom line stays separate.
+
+### Why it matters
+- Makes the demo feel real: it shows the actual flight instead of hardcoded data.
+- Lays the groundwork for Feature 9 (flight info: destination, status).
+- On a real seatback the aircraft supplies the flight, so this lookup is a demo stand-in. Because it sits behind one service file, it's easy to replace.
+
+### Known limits
+- AeroDataBox free tier has a monthly request cap; the cache helps but doesn't remove it.
+- No turbulence data (PRD out-of-scope #4: no cockpit readings).
+- The function is public (no login), protected only by input validation and the cache.

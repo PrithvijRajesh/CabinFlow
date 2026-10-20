@@ -1,15 +1,16 @@
-import { FLIGHT } from '../data/flight'
+import { useFlight } from '../context/useFlight'
 import Icon from './Icon'
 
 // Route line with the plane positioned at the current flight progress.
 export default function FlightStrip({ compact = false }: { compact?: boolean }) {
-  const pct = Math.round(FLIGHT.progress * 100)
+  const { flight, progress } = useFlight()
+  const pct = Math.round(progress * 100)
 
   return (
     <div className={compact ? 'strip strip-compact' : 'strip'}>
       <div className="strip-end">
-        <span className="strip-code">{FLIGHT.origin.code}</span>
-        {!compact && <span className="strip-time">{FLIGHT.departureTime}</span>}
+        <span className="strip-code">{flight.origin.code}</span>
+        {!compact && <span className="strip-time">{flight.departureTime}</span>}
       </div>
       <div className="strip-track" role="img" aria-label={`Flight ${pct}% complete`}>
         <div className="strip-done" style={{ width: `${pct}%` }} />
@@ -18,8 +19,8 @@ export default function FlightStrip({ compact = false }: { compact?: boolean }) 
         </span>
       </div>
       <div className="strip-end strip-end-right">
-        <span className="strip-code">{FLIGHT.destination.code}</span>
-        {!compact && <span className="strip-time">{FLIGHT.arrivalTime}</span>}
+        <span className="strip-code">{flight.destination.code}</span>
+        {!compact && <span className="strip-time">{flight.arrivalTime}</span>}
       </div>
     </div>
   )

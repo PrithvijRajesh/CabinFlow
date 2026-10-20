@@ -3,10 +3,8 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell) and Feature 2 (passenger restroom line).
+- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
 - **Next:** Feature 3, crew view of the restroom line, with the power to confirm or override whose turn it is.
-- **Approved, not built:** real flight lookup by flight number on the boarding-pass welcome screen.
-  - Recommended provider: AeroDataBox, called via a Supabase Edge Function so its key stays server-side.
 
 ## Key decisions
 - **Customer:** sold to seatback IFE makers (Panasonic, Thales, Collins). It runs on seatback screens, so:
@@ -19,7 +17,8 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 
 ## How it works (quick map)
 - **Features list:** `src/features.ts`. Each role's nav and home tiles come from it. A new feature = one entry + one screen.
-- **Mock data:** `src/data/flight.ts` holds the mock flight, the demo crew PIN (`1234`) and `FLIGHT_ID`.
+- **Flight data:** `src/context/FlightContext.tsx` holds the current flight (`useFlight()` gives `flight`, `flightId`, `progress`, `remaining`). `src/data/flight.ts` has `DEMO_FLIGHT`, the demo crew PIN (`1234`) and helpers.
+- **Edge Functions:** in `supabase/functions/`. Deploy with `supabase functions deploy <name>` (CLI is logged in and linked). Secrets are set in the dashboard.
 - **Backend pattern** (copy it for new features):
   - SQL migration in `supabase/migrations/`. The user runs it in the Supabase SQL Editor.
   - The browser gets read-only grants; all writes go through `security definer` functions.
@@ -28,6 +27,8 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 ## Setup gotchas
 - **`.env.local`** (gitignored) needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Never put the secret key in it.
 - **Restart `npm run dev`** after changing `.env.local`.
+- **`.env.local` uses `KEY = value` with spaces.** Vite accepts it but shell `source` doesn't. `VITE_SUPABASE_URL` ends in `/rest/v1/`; the client keeps only the origin.
+- **`supabase login` needs a real terminal.** It fails through the `!` prefix (non-TTY).
 - **New tables need explicit `grant select ... to anon`** (see migration 0002). Otherwise you get "permission denied".
 
 ## Workflow rules (from the user)

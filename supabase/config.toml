@@ -1,0 +1,4 @@
+# Publishable keys (sb_publishable_…) aren't JWTs, so the gateway's JWT check
+# must be off; the function validates input and caches to protect API quota.
+[functions.flight-lookup]
+verify_jwt = false

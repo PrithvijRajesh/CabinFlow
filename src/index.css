@@ -143,8 +143,35 @@ button:disabled { cursor: default; }
 .pass-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 0; padding-top: 20px; border-top: 1px solid var(--line); }
 .pass-fields dt { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
 .pass-fields dd { margin: 4px 0 0; font-family: var(--mono); font-size: 1.05rem; font-weight: 500; }
-.status-live { color: var(--ok); }
-.status-live::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: middle; animation: pulse 2s infinite; }
+.status::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: middle; }
+.status-ok { color: var(--ok); }
+.status-ok::before { animation: pulse 2s infinite; }
+.status-warn { color: #b7791f; }
+.status-bad { color: var(--danger); }
+.status-neutral { color: var(--ink-2); }
+
+/* Flight lookup (demo control on the boarding pass) */
+.lookup { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 10px; }
+.lookup-meta { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.lookup-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lookup-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.lookup-input::placeholder { color: var(--ink-2); opacity: 0.7; letter-spacing: 0.02em; }
+.lookup-input[aria-invalid='true'] { border-color: var(--danger); }
+.lookup-btn { padding: 10px 16px; border-radius: 10px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 0.9rem; }
+.lookup-btn:disabled { opacity: 0.4; }
+.lookup-reset { padding: 10px 6px; font-size: 0.85rem; color: var(--ink-2); text-decoration: underline; }
+.lookup .hint { margin: 0; }
 
 .stub-title { margin: 0 0 8px; font-family: var(--serif); font-weight: 500; font-size: 1.6rem; letter-spacing: -0.02em; line-height: 1.15; }
 .stub-option {

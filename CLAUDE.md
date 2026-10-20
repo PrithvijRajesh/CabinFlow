@@ -27,7 +27,10 @@ A application that connects to seat back screens to help improve airline operati
 6. Focus on one feature at a time, just focus on the item that is current focus
 7. Before adding a service confirm with me and explain why it is needed
 8. Create 2 md files if they do not exist yet, one called WorkLog and one called FeatureAnalysis, after each feature is implemented you will add to each md file, the WorkLog will just go over when the feature was completed and updated as feature milestones are completed saying what the milestone was, the FeatureAnalysis will explain the feature so I understand how it was implemented and why it is important.
+9. Read NOTES.md at the start of each session and update it after each feature.
 
 ## Current Focus
 
-Passenger restroom line: join or leave the queue, see your position and when it's your turn.
+Flight lookup by flight number on the boarding-pass welcome screen (real flight data via AeroDataBox).
+
+Next: Crew restroom line view: see the queue and confirm or override whose turn it is.

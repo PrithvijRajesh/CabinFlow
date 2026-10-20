@@ -9,9 +9,12 @@ import '@fontsource/ibm-plex-mono/400.css'
 import '@fontsource/ibm-plex-mono/500.css'
 import './index.css'
 import App from './App.tsx'
+import { FlightProvider } from './context/FlightContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <FlightProvider>
+      <App />
+    </FlightProvider>
   </StrictMode>,
 )
