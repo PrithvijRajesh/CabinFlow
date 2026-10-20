@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react'
 import { useFlight } from '../context/useFlight'
 import { statusLabel } from '../data/flight'
 import Icon from '../components/Icon'
@@ -9,7 +8,7 @@ interface Props {
 }
 
 export default function RoleSelect({ onSelect }: Props) {
-  const { flight, isDemo, progress } = useFlight()
+  const { flight, isDemo, ready, progress } = useFlight()
   const status = statusLabel(flight.status)
   const departed = progress > 0
 
@@ -43,7 +42,9 @@ export default function RoleSelect({ onSelect }: Props) {
             <div><dt>Status</dt><dd className={`status status-${status.tone}`}>{status.label}</dd></div>
           </dl>
 
-          <FlightLookup key={flight.flightNumber} isDemo={isDemo} />
+          <p className="lookup-meta pass-meta">
+            {!ready ? 'Loading flight…' : isDemo ? 'Demo flight · crew set the real flight on board' : [flight.airline, flight.aircraft].filter(Boolean).join(' · ')}
+          </p>
         </section>
 
         <div className="pass-perf" aria-hidden />
@@ -69,54 +70,5 @@ export default function RoleSelect({ onSelect }: Props) {
         </section>
       </div>
     </main>
-  )
-}
-
-// Demo control: set which real flight this screen is on. On real seatback
-// hardware the flight comes from the aircraft, so this goes away.
-function FlightLookup({ isDemo }: { isDemo: boolean }) {
-  const { flight, loadFlight, resetToDemo } = useFlight()
-  const [value, setValue] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    if (!value.trim()) return
-    setLoading(true)
-    setError('')
-    try {
-      await loadFlight(value)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lookup failed.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <form className="lookup" onSubmit={submit}>
-      <span className="lookup-meta">
-        {isDemo ? 'Demo flight' : [flight.airline, flight.aircraft].filter(Boolean).join(' · ')}
-      </span>
-      <div className="lookup-row">
-        <input
-          className="lookup-input"
-          value={value}
-          onChange={(e) => { setValue(e.target.value.toUpperCase()); setError('') }}
-          placeholder="Flight no. e.g. UA 1234"
-          maxLength={8}
-          aria-label="Flight number"
-          aria-invalid={!!error}
-        />
-        <button className="lookup-btn" disabled={loading || !value.trim()}>
-          {loading ? 'Looking up…' : 'Load flight'}
-        </button>
-        {!isDemo && (
-          <button type="button" className="lookup-reset" onClick={resetToDemo}>Use demo</button>
-        )}
-      </div>
-      {error && <p className="hint hint-error">{error}</p>}
-    </form>
   )
 }

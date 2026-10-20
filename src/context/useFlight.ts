@@ -6,9 +6,10 @@ export interface FlightContextValue {
   flightId: string
   progress: number
   remaining: string
-  isDemo: boolean
-  loadFlight: (number: string) => Promise<void>
-  resetToDemo: () => void
+  isDemo: boolean // no flight set for this aircraft yet
+  ready: boolean // aircraft flight loaded (avoids flashing the demo flight)
+  loadFlight: (number: string) => Promise<void> // crew only
+  resetToDemo: () => Promise<void> // crew only
 }
 
 export const FlightContext = createContext<FlightContextValue | null>(null)

@@ -1,5 +1,6 @@
 import { useFlight } from '../context/useFlight'
 import FlightStrip from '../components/FlightStrip'
+import FlightSetup from '../components/FlightSetup'
 import Icon from '../components/Icon'
 import type { Feature } from '../features'
 import type { Session } from '../types'
@@ -116,6 +117,8 @@ function CrewHome({ features, restroom, orders, requests, onOpen }: { features: 
         <h1 className="display">{flight.flightNumber} <span className="dim">{flight.origin.code} → {flight.destination.code}</span></h1>
         <p className="lede">{remaining === 'Landed' ? 'Landed' : `${remaining} remaining`} · arriving {flight.arrivalTime}</p>
       </div>
+
+      <FlightSetup />
 
       <div className="stats">
         {stats.map((s) => (

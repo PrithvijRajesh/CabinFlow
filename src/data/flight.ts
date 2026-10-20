@@ -17,8 +17,9 @@ export const DEMO_FLIGHT: FlightInfo = {
   arrivalUtc: minutesFromNow(128),
 }
 
-// Demo-only crew PIN. Checked client-side, so it is not real security.
-export const CREW_PIN = '1234'
+// The aircraft this device is installed on. On real hardware the IFE system
+// supplies it; the demo has one aircraft.
+export const AIRCRAFT_ID = 'DEMO-1'
 
 // Rows 1–60. Seat letters A–K, skipping I (airlines don't use it).
 export const SEAT_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K']

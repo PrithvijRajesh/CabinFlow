@@ -31,4 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Refine Flight Info (PRD Feature 9): real turbulence outlook along the route and weather at the arrival airport.
+Flight-phase rules: features available by phase (before takeoff, in flight, after landing), with a crew phase override.

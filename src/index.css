@@ -589,6 +589,18 @@ button:disabled { cursor: default; }
 .ride-light { color: #b7791f; }
 .ride-bumpy { color: var(--danger); }
 
+/* ---------- Crew sign-in + flight setup ---------- */
+.signin { display: flex; flex-direction: column; gap: 14px; }
+.signin-field { display: flex; flex-direction: column; gap: 6px; }
+.signin .btn { align-self: flex-start; }
+.signin .hint { margin: 0; }
+.pass-meta { margin: 18px 0 0; padding-top: 16px; border-top: 1px dashed var(--line); }
+.setup-card { margin-bottom: 20px; padding: 20px 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
+.setup-card.needs-setup { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.setup-head { display: flex; flex-direction: column; gap: 4px; }
+.setup-flight { margin: 4px 0 0; font-family: var(--mono); font-size: 1.5rem; font-weight: 500; }
+.setup-card .lookup { margin-top: 14px; }
+
 /* ---------- Crew snack cart ---------- */
 .cart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 .cart-empty { padding: 28px; background: var(--paper); border: 1px dashed var(--line); border-radius: 18px; }

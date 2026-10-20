@@ -1,34 +1,36 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { DEMO_FLIGHT, flightId, flightProgress } from '../data/flight'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { AIRCRAFT_ID, DEMO_FLIGHT, flightId, flightProgress } from '../data/flight'
 import { lookupFlight } from '../services/flightLookup'
+import { clearAircraftFlight, fetchAircraftFlight, setAircraftFlight, subscribeAircraftFlight } from '../services/aircraft'
+import { supabase } from '../lib/supabase'
 import type { FlightInfo } from '../types'
 import { FlightContext, type FlightContextValue } from './useFlight'
 
-const STORAGE_KEY = 'cabinflow.flight'
-
-// The screen is configured for one flight, so remember it on this device.
-function loadSaved(): FlightInfo | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as FlightInfo) : null
-  } catch {
-    return null
-  }
-}
-
-function save(flight: FlightInfo | null) {
-  try {
-    if (flight) localStorage.setItem(STORAGE_KEY, JSON.stringify(flight))
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // Storage blocked: the flight just won't survive a reload.
-  }
-}
-
+// The flight comes from the aircraft (set once by crew), so every seatback on
+// this aircraft shows the same flight and updates live when crew change it.
 export function FlightProvider({ children }: { children: ReactNode }) {
-  const [saved, setSaved] = useState<FlightInfo | null>(loadSaved)
+  const [aircraftFlight, setFlight] = useState<FlightInfo | null>(null)
+  const [ready, setReady] = useState(!supabase)
   const [now, setNow] = useState(() => Date.now())
-  const flight = saved ?? DEMO_FLIGHT
+  const flight = aircraftFlight ?? DEMO_FLIGHT
+
+  const refresh = useCallback(async () => {
+    try {
+      setFlight(await fetchAircraftFlight(AIRCRAFT_ID))
+    } catch {
+      // Backend unreachable: keep showing whatever we had (or the demo flight).
+    } finally {
+      setReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase) return
+    // State updates in refresh() happen after an await, not synchronously.
+    // oxlint-disable-next-line react/set-state-in-effect
+    void refresh()
+    return subscribeAircraftFlight(AIRCRAFT_ID, () => void refresh())
+  }, [refresh])
 
   // Keep progress and time remaining moving.
   useEffect(() => {
@@ -43,15 +45,16 @@ export function FlightProvider({ children }: { children: ReactNode }) {
     flightId: flightId(flight),
     progress,
     remaining,
-    isDemo: !saved,
+    isDemo: !aircraftFlight,
+    ready,
     loadFlight: async (number) => {
       const found = await lookupFlight(number)
-      save(found)
-      setSaved(found)
+      await setAircraftFlight(AIRCRAFT_ID, found)
+      setFlight(found)
     },
-    resetToDemo: () => {
-      save(null)
-      setSaved(null)
+    resetToDemo: async () => {
+      await clearAircraftFlight(AIRCRAFT_ID)
+      setFlight(null)
     },
   }
 

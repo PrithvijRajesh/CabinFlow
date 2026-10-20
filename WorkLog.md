@@ -93,3 +93,11 @@
 - **2026-10-20** — `flight-lookup` now stores ICAO, coordinates and time zone per airport.
 - **2026-10-20** — Flight Info uses live data: Nothing reported / Light chop / Bumpy per leg, destination temp, conditions, wind, arrival forecast, local time; sample generator removed.
 - **2026-10-20** — Tested on SFO–DFW, JFK–LHR, SFO–SIN, ORD–DEN; UI tested manually. Approved and committed.
+
+## Refinement — Crew login and aircraft flight setup
+
+- **2026-10-20** — Supabase Auth crew accounts approved; demo crew user created in the dashboard, public sign-ups turned off.
+- **2026-10-20** — Database: `crew_members`, `is_crew()`, `aircraft_flights` + `aircraft_set_flight` / `aircraft_clear_flight`; all crew-only functions now require signed-in crew and are revoked from anon (`supabase/migrations/0012`).
+- **2026-10-20** — Crew sign-in screen (email + password, remembered per tablet) replaces the demo PIN; stale PIN sessions are sent back to sign-in.
+- **2026-10-20** — Flight setup moved from the passenger welcome screen to crew Home ("This aircraft · DEMO-1"); seatbacks read the aircraft's flight live.
+- **2026-10-20** — Verified crew functions reject the publishable key alone; sign-in and flight setup tested manually. Approved, committed and pushed.

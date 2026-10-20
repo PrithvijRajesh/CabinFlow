@@ -5,7 +5,9 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 ## Where things stand
 - **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), Feature 7 (passenger assistance requests), Feature 8 (crew requests + urgent banner), Feature 9 (flight info with live NOAA turbulence + destination weather via Edge Function `flight-weather`), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
 - **Phase:** all 9 PRD features exist. Now refining features so they work properly.
-- **Next:** crew login / flight setup, and flight-phase rules (what's available before takeoff and after landing). The user has noticed other issues to raise later.
+- **Done (refinement):** crew login (Supabase Auth + `crew_members`) and aircraft flight setup on crew Home (`aircraft_flights`, aircraft `DEMO-1`).
+- **Next:** flight-phase rules. Agreed: before takeoff **Restroom and Assistance are off** (crew are in the aisle during boarding), Snacks on (pre-order), ride outlook in "expected ride" mode. After landing: Restroom and Snacks off. Crew can override the phase (Boarding → In flight → Landed) because AeroDataBox status can lag.
+- The user has noticed other issues to raise later.
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
@@ -22,7 +24,8 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 ## How it works (quick map)
 - **Shared hooks live in `AppShell`** (restroom, cart, picks, crew orders, assistance, crew assistance) and are passed down as props. Don't open a second realtime channel with the same name.
 - **Features list:** `src/features.ts`. Each role's nav and home tiles come from it. A new feature = one entry + one screen.
-- **Flight data:** `src/context/FlightContext.tsx` holds the current flight (`useFlight()` gives `flight`, `flightId`, `progress`, `remaining`). `src/data/flight.ts` has `DEMO_FLIGHT`, the demo crew PIN (`1234`) and helpers.
+- **Crew login:** demo crew account is `crew@email.com` (password set by the user, not stored here). Public sign-ups must stay off.
+- **Flight data:** `src/context/FlightContext.tsx` holds the current flight (`useFlight()` gives `flight`, `flightId`, `progress`, `remaining`). `src/data/flight.ts` has `DEMO_FLIGHT`, `AIRCRAFT_ID` and helpers. The flight itself is set by crew in `aircraft_flights`.
 - **Edge Functions:** in `supabase/functions/`. Deploy with `supabase functions deploy <name>` (CLI is logged in and linked). Secrets are set in the dashboard.
 - **Backend pattern** (copy it for new features):
   - SQL migration in `supabase/migrations/`. The user runs it in the Supabase SQL Editor.

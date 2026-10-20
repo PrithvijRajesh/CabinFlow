@@ -337,3 +337,29 @@
 - Coverage is uneven: dense over the US, only significant turbulence elsewhere.
 - Advisories are forecasts and reports, not measurements. The screen says so.
 - Flights saved before this change need to be loaded again to get ICAO codes.
+
+## Refinement — Crew login and aircraft flight setup
+
+### What it does
+- **Crew sign in once per tablet** with an email and password. They stay signed in until they tap Sign out, like a real crew app.
+- **Crew set the aircraft's flight** from crew Home ("This aircraft · DEMO-1"): enter a flight number, change it, or go back to the demo flight.
+- **Passengers no longer choose the flight.** The welcome screen just shows the aircraft's flight, and every seatback updates live when crew change it.
+- **Crew actions are now protected:** restroom override/pause, cart setup, served, request ack/done and flight setup all require a signed-in crew member.
+
+### How it's implemented
+- **Supabase Auth** holds crew accounts. Public sign-ups are off, and an account only counts as crew if it is listed in **`crew_members`** (checked by `is_crew()`).
+- **Migration 0012:**
+  - `aircraft_flights`: one row per aircraft with the current flight (JSON from `flight-lookup`), readable by seatbacks, realtime enabled. Set via `aircraft_set_flight` / `aircraft_clear_flight` (crew only).
+  - Every crew-only function re-created with an `is_crew()` check and `execute` revoked from `anon`.
+- **Frontend:**
+  - `src/services/crewAuth.ts` (sign in / out, crew check) and `src/screens/CrewSignIn.tsx` replace the PIN keypad.
+  - `src/services/aircraft.ts` + `src/context/FlightContext.tsx`: the flight now comes from `aircraft_flights` for `AIRCRAFT_ID` (`DEMO-1`), not per-browser storage.
+  - `src/components/FlightSetup.tsx` on crew Home.
+
+### Why it matters
+- Matches real aircraft: the aircraft knows its flight, and crew sign in once per flight.
+- Closes the biggest security gap noted in Features 3–8: crew actions can no longer be called with only the publishable key.
+
+### Known limits
+- **Reads are still open:** seat-level data (queue, picks, requests) is readable with the publishable key, because passengers read their own rows without signing in. Fixing it needs a passenger identity (e.g. a per-seat token from the IFE).
+- One demo aircraft; on real hardware the IFE supplies the aircraft ID.

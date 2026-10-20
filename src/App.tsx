@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Role, Session } from './types'
 import RoleSelect from './screens/RoleSelect'
 import SeatEntry from './screens/SeatEntry'
-import CrewPin from './screens/CrewPin'
+import CrewSignIn from './screens/CrewSignIn'
+import { isSignedInCrew, signOutCrew } from './services/crewAuth'
 import AppShell from './components/AppShell'
 
 const STORAGE_KEY = 'cabinflow.session'
@@ -30,13 +31,24 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(loadSession)
   const [pendingRole, setPendingRole] = useState<Role | null>(null)
 
-  function signIn(next: Session) {
+  const signIn = useCallback((next: Session) => {
     saveSession(next)
     setSession(next)
     setPendingRole(null)
-  }
+  }, [])
+  const crewSignedIn = useCallback(() => signIn({ role: 'crew' }), [signIn])
+
+  // A crew session saved in this tab (e.g. from the old PIN) needs a real sign-in behind it.
+  useEffect(() => {
+    if (session?.role !== 'crew') return
+    isSignedInCrew().then((ok) => {
+      if (!ok) { saveSession(null); setSession(null) }
+    }).catch(() => {})
+  }, [session])
 
   function signOut() {
+    // Crew sign out ends the remembered Supabase session on this tablet too.
+    if (session?.role === 'crew') void signOutCrew().catch(() => {})
     saveSession(null)
     setSession(null)
   }
@@ -47,7 +59,7 @@ export default function App() {
     return <SeatEntry onConfirm={(seat) => signIn({ role: 'passenger', seat })} onBack={() => setPendingRole(null)} />
 
   if (pendingRole === 'crew')
-    return <CrewPin onConfirm={() => signIn({ role: 'crew' })} onBack={() => setPendingRole(null)} />
+    return <CrewSignIn onConfirm={crewSignedIn} onBack={() => setPendingRole(null)} />
 
   return <RoleSelect onSelect={setPendingRole} />
 }
