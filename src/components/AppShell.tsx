@@ -9,6 +9,7 @@ import CrewCart from '../screens/CrewCart'
 import Snacks from '../screens/Snacks'
 import Assistance from '../screens/Assistance'
 import CrewRequests from '../screens/CrewRequests'
+import FlightInfo from '../screens/FlightInfo'
 import { useFlight } from '../context/useFlight'
 import { useRestroomQueue } from '../hooks/useRestroomQueue'
 import { useCart } from '../hooks/useCart'
@@ -93,6 +94,8 @@ export default function AppShell({ session, onSignOut }: Props) {
             <Snacks cart={cart} picks={picks} />
           ) : session.role === 'passenger' && active === 'assistance' ? (
             <Assistance assist={assist} />
+          ) : session.role === 'passenger' && active === 'flight' ? (
+            <FlightInfo />
           ) : session.role === 'crew' && active === 'bathroom' ? (
             <CrewRestroom />
           ) : session.role === 'crew' && active === 'snacks' ? (

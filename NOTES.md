@@ -3,8 +3,9 @@
 Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` and `FeatureAnalysis.md`.
 
 ## Where things stand
-- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), Feature 7 (passenger assistance requests), Feature 8 (crew requests + urgent banner), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
-- **Next:** Feature 9 (basic), flight info: destination and ride outlook. After that, the user wants to refine features and make them work properly.
+- **Done:** Feature 1 (role select, seat/PIN entry, app shell), Feature 2 (passenger restroom line), Feature 3 (crew restroom queue + pause line), Feature 4 (crew snack cart, complimentary, one-tap standard cart), Feature 5 (passenger drink + snack pick with ice / cream / sugar), Feature 6 (crew orders: load-up totals, by seat, served), Feature 7 (passenger assistance requests), Feature 8 (crew requests + urgent banner), Feature 9 basic (flight info, sample ride outlook), and real flight lookup on the welcome screen (AeroDataBox via Supabase Edge Function `flight-lookup`).
+- **Phase:** all 9 PRD features exist. Now refining features so they work properly.
+- **Next:** real turbulence + destination weather for Flight Info (Feature 9 refinement).
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.

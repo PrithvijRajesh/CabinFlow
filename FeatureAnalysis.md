@@ -288,3 +288,23 @@
 ### Known limits
 - No assignment of a request to a specific crew member.
 - Same auth limit as before.
+
+## Feature 9 — Passenger flight info (basic)
+
+### What it does
+- **Header:** route, time to go, destination city and local arrival time, progress strip.
+- **Your flight:** status, departure / arrival times, time left, airline and aircraft.
+- **Destination:** airport code, city, scheduled local arrival.
+- **Ride outlook:** five legs (Climb → Descent) shown as Smooth / Light chop / Bumpy, the current leg highlighted from flight progress, with a plain-language tip ("A good time to stretch or use the restroom").
+
+### How it's implemented
+- `src/screens/FlightInfo.tsx` reads everything from `useFlight()` (AeroDataBox or demo flight). No backend changes.
+- The ride outlook is **sample data**: `sampleOutlook()` derives it from the flight ID so it stays stable during the flight. It is labelled "Sample · live data coming" on screen.
+
+### Why it matters
+- PRD Feature 9: passengers see expected turbulence and destination info from their seat.
+- Knowing when it's smooth helps passengers time restroom trips, which ties back to cabin movement.
+
+### Known limits
+- Turbulence is not real yet; destination has no weather yet. Both are the next refinement.
+- No cockpit data, by design (PRD out-of-scope #4).

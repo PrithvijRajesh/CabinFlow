@@ -31,6 +31,4 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Passenger flight info (basic version): flight status, destination airport and a ride (turbulence) outlook (PRD Feature 9).
-
-Next: refine existing features and make them work properly.
+Refine Flight Info (PRD Feature 9): real turbulence outlook along the route and weather at the arrival airport.

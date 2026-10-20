@@ -79,3 +79,9 @@
 - **2026-10-20** — Passive urgent banner on all crew screens until someone is on the way; live Open requests stat on crew Home.
 - **2026-10-20** — Backend tested on a test flight ID (note check, ack, done from open or ack, no-ops on closed / cancelled / wrong flight); UI tested manually.
 - **2026-10-20** — Feature 8 approved and committed.
+
+## Feature 9 — Passenger flight info (basic)
+
+- **2026-10-20** — Flight Info screen: route header with progress, flight status card, destination card, ride outlook timeline (5 legs, current leg highlighted). Uses existing flight data; no new service.
+- **2026-10-20** — Ride outlook uses clearly labelled **sample** data until a real turbulence source is approved.
+- **2026-10-20** — Basic Feature 9 approved and committed. Next: real turbulence + destination weather.

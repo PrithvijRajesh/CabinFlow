@@ -564,6 +564,29 @@ button:disabled { cursor: default; }
 .assist-note textarea { padding: 12px 14px; font: inherit; font-size: 1rem; color: var(--ink); background: var(--paper); border: none; border-radius: 12px; resize: none; }
 .assist-count { align-self: flex-end; font-family: var(--mono); font-size: 0.75rem; color: rgba(248, 244, 236, 0.7); }
 
+/* ---------- Flight info ---------- */
+.info-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; max-width: 960px; }
+.info-card { padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; }
+.info-card .section-label { margin: 0 0 14px; }
+.info-wide { grid-column: 1 / -1; }
+.info-fields { border-top: none; padding-top: 0; }
+.info-meta { margin: 16px 0 0; font-size: 0.9rem; color: var(--ink-2); }
+.info-big { margin: 0; font-family: var(--serif); font-size: 3.4rem; font-weight: 500; line-height: 1; letter-spacing: -0.03em; color: var(--accent); }
+.info-city { margin: 6px 0 0; font-size: 1.1rem; }
+.ride-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ride-head .section-label { margin: 0; }
+.ride-now { margin: 14px 0 18px; font-size: 1.05rem; }
+.ride-legs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.ride-leg { display: flex; flex-direction: column; gap: 6px; }
+.ride-bar { height: 10px; border-radius: 99px; background: currentColor; }
+.ride-leg-name { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.ride-leg-label { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+.ride-leg.is-past { opacity: 0.45; }
+.ride-leg.is-now .ride-bar { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px currentColor; }
+.ride-smooth { color: var(--ok); }
+.ride-light { color: #b7791f; }
+.ride-bumpy { color: var(--danger); }
+
 /* ---------- Crew snack cart ---------- */
 .cart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 .cart-empty { padding: 28px; background: var(--paper); border: 1px dashed var(--line); border-radius: 18px; }
@@ -625,7 +648,7 @@ button:disabled { cursor: default; }
   .console-body { grid-template-columns: 1fr; }
   .bento { grid-template-columns: 1fr 1fr; }
   .tile-flight { grid-column: span 1; }
-  .restroom-grid, .crew-grid, .cart-grid { grid-template-columns: 1fr; }
+  .restroom-grid, .crew-grid, .cart-grid, .info-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -654,6 +677,8 @@ button:disabled { cursor: default; }
   .module-index { display: none; }
   .queue-card { padding: 24px; min-height: 0; }
   .snack-bar { bottom: 88px; }
+  .ride-legs { grid-template-columns: 1fr; }
+  .ride-leg { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; }
   .line-control { flex-direction: column; align-items: stretch; }
   .crew-row { grid-template-columns: 56px 1fr auto; }
   .crew-pos { display: none; }
