@@ -1,0 +1,20 @@
+# Dependencies / build
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+
+# Env / deploy
+.env*
+.vercel
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Not app code: research and course material stay local
+research/
+Product Proposal.pdf

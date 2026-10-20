@@ -1,0 +1,96 @@
+import { FLIGHT } from '../data/flight'
+import FlightStrip from '../components/FlightStrip'
+import Icon from '../components/Icon'
+import type { Feature } from '../features'
+import type { Session } from '../types'
+
+interface Props {
+  session: Session
+  features: Feature[]
+  onOpen: (id: string) => void
+}
+
+function greeting() {
+  const h = new Date().getHours()
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+}
+
+export default function Home({ session, features, onOpen }: Props) {
+  return session.role === 'crew'
+    ? <CrewHome features={features} onOpen={onOpen} />
+    : <PassengerHome seat={session.seat} features={features} onOpen={onOpen} />
+}
+
+function PassengerHome({ seat, features, onOpen }: { seat: string; features: Feature[]; onOpen: (id: string) => void }) {
+  return (
+    <section className="home">
+      <div className="hero">
+        <p className="eyebrow">{FLIGHT.flightNumber} · {FLIGHT.timeRemaining} to go</p>
+        <h1 className="display">
+          {greeting()}, <em>{seat}</em>.
+        </h1>
+        <p className="lede">Everything you need from your seat, so the aisle stays clear.</p>
+        <div className="hero-strip"><FlightStrip /></div>
+      </div>
+
+      <div className="bento">
+        {features.map((f, i) => (
+          <button key={f.id} className={`tile tile-${f.id}`} onClick={() => onOpen(f.id)}>
+            <span className="tile-top">
+              <span className="tile-icon"><Icon name={f.icon} size={26} /></span>
+              <span className="tile-index">0{i + 1}</span>
+            </span>
+            <span className="tile-label">{f.label}</span>
+            <span className="tile-desc">{f.description}</span>
+            <span className="tile-foot">Open <Icon name="arrow" size={16} /></span>
+          </button>
+        ))}
+      </div>
+
+      <p className="footnote">Need help right away? Your call button works as usual.</p>
+    </section>
+  )
+}
+
+function CrewHome({ features, onOpen }: { features: Feature[]; onOpen: (id: string) => void }) {
+  // Counters stay blank until the features feeding them exist.
+  const stats = [
+    { label: 'Open requests', value: '—' },
+    { label: 'Restroom queue', value: '—' },
+    { label: 'Orders placed', value: '—' },
+  ]
+
+  return (
+    <section className="home">
+      <div className="hero">
+        <p className="eyebrow">Cabin overview</p>
+        <h1 className="display">{FLIGHT.flightNumber} <span className="dim">{FLIGHT.origin.code} → {FLIGHT.destination.code}</span></h1>
+        <p className="lede">{FLIGHT.timeRemaining} remaining · arriving {FLIGHT.arrivalTime}</p>
+      </div>
+
+      <div className="stats">
+        {stats.map((s) => (
+          <div key={s.label} className="stat">
+            <span className="stat-value">{s.value}</span>
+            <span className="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="eyebrow section-label">Modules</p>
+      <div className="modules">
+        {features.map((f, i) => (
+          <button key={f.id} className="module" onClick={() => onOpen(f.id)}>
+            <span className="module-index">0{i + 1}</span>
+            <Icon name={f.icon} size={22} />
+            <span className="module-text">
+              <span className="module-label">{f.label}</span>
+              <span className="module-desc">{f.description}</span>
+            </span>
+            <span className="module-status"><span className="led" /> Standby</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
