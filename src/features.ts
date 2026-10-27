@@ -30,7 +30,7 @@ export const FEATURES: Record<Role, Feature[]> = {
       phases: ['inflight', 'landed'],
       offReason: { boarding: 'Requests open after takeoff. During boarding, ask any crew member in the aisle.' },
     },
-    { id: 'flight', label: 'Flight Info', icon: 'compass', description: 'Ride outlook and your arrival airport.' },
+    { id: 'flight', label: 'Flight Info', icon: 'compass', description: 'Turbulence outlook and your arrival airport.' },
   ],
   crew: [
     { id: 'bathroom', label: 'Restroom Queue', icon: 'restroom', description: 'Live queue per lavatory. Confirm whose turn it is.' },

@@ -4,7 +4,7 @@ import {
   type AssistRequest, type AssistType,
 } from '../services/assistance'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface Assistance {
   ready: boolean
@@ -14,13 +14,14 @@ export interface Assistance {
   busy: boolean
   send: (type: AssistType, note: string | null) => Promise<boolean>
   cancel: (id: string) => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 // This seat's assistance requests, kept live. `seat` is null for crew.
 export function useAssistance(flightId: string, seat: string | null): Assistance {
   const [requests, setRequests] = useState<AssistRequest[]>([])
   const [ready, setReady] = useState(!supabase || !seat)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -29,7 +30,7 @@ export function useAssistance(flightId: string, seat: string | null): Assistance
       setRequests(await fetchMyRequests(flightId, seat))
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load your requests.'))
+      setError(friendlyError(e, "We couldn't load your requests."))
     } finally {
       setReady(true)
     }
@@ -55,7 +56,7 @@ export function useAssistance(flightId: string, seat: string | null): Assistance
       await refresh()
       return true
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
       return false
     } finally {
       setBusy(false)
@@ -68,6 +69,7 @@ export function useAssistance(flightId: string, seat: string | null): Assistance
     requests,
     active: requests.filter((r) => r.status === 'open' || r.status === 'ack'),
     busy,
+    retry: refresh,
     send: (type, note) => run(() => sendRequest(flightId, seat!, type, note)),
     cancel: async (id) => { await run(() => cancelRequest(flightId, seat!, id)) },
   }

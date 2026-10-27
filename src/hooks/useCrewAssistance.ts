@@ -4,7 +4,7 @@ import {
   type CrewAssistRequest,
 } from '../services/assistance'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface CrewAssistance {
   ready: boolean
@@ -16,6 +16,7 @@ export interface CrewAssistance {
   busy: boolean
   ack: (id: string) => Promise<void>
   done: (id: string) => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 const URGENT = new Set(ASSIST_TYPES.filter((t) => t.urgent).map((t) => t.type))
@@ -26,7 +27,7 @@ export const isUrgent = (r: CrewAssistRequest) => URGENT.has(r.type)
 export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssistance {
   const [rows, setRows] = useState<CrewAssistRequest[]>([])
   const [ready, setReady] = useState(!supabase || !enabled)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -35,7 +36,7 @@ export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssis
       setRows(await fetchFlightRequests(flightId))
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load requests.'))
+      setError(friendlyError(e, "We couldn't load passenger requests."))
     } finally {
       setReady(true)
     }
@@ -58,7 +59,7 @@ export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssis
       await action()
       await refresh()
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
     } finally {
       setBusy(false)
     }
@@ -75,6 +76,7 @@ export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssis
     recent: rows.filter((r) => r.status === 'done' || r.status === 'cancelled').reverse(),
     urgentOpen: open.filter(isUrgent),
     busy,
+    retry: refresh,
     ack: (id) => run(() => ackRequest(flightId, id)),
     done: (id) => run(() => doneRequest(flightId, id)),
   }

@@ -109,3 +109,17 @@
 - **2026-10-20** — Passenger nav / Home tiles greyed with reasons, Not available screen; Flight Info "Expected ride" before takeoff and "We've landed" after.
 - **2026-10-20** — Crew Home phase control (Auto / Boarding / In flight / Landed) with a passenger-availability line; phase notices on crew Restroom and Requests.
 - **2026-10-20** — Tested manually across all phases. Approved, committed and pushed.
+
+## Refinement — Usability heuristics (Nielsen's 10)
+
+- **2026-10-27** — Audited every screen against Nielsen's 10 heuristics; 9 issues ranked, fixing one at a time.
+- **2026-10-27** — #1 Undo for destructive actions (H3, H5): 5-second Undo toast for crew remove / no-show / confirm back / remove cart item / request done, and passenger leave line / give up turn / clear pick / cancel request. Sign out needs a second tap. Crew row buttons are now 44px touch targets.
+- **2026-10-27** — #2 Restroom slip guard (H5): with an empty line, "Use it now" asks "Go now?" before starting the 5-minute turn (Start my turn / Not yet, auto-closes after 10s, falls back to Save my spot if someone joins).
+- **2026-10-27** — #3 Plain-language errors with recovery (H9): `friendlyError()` keeps our own messages, logs and replaces raw Supabase / network / HTTP errors, and says when the connection is down. Every error banner has an alert icon, bold red text and a **Try again** button (`retry` on all live hooks and the weather hook).
+- **2026-10-27** — #4 Out-of-date and jargon wording (H2): "Crew PIN required" → "Crew sign-in required"; Flight Info no longer sends passengers to a removed welcome-screen lookup (crew Home now says how to turn live weather back on); "Step 2 of 2" → "Passenger"; "Light chop" / "Ride outlook" → "Light bumps" / "Turbulence outlook".
+- **2026-10-27** — #5 Real status on crew Home (H1, H8, H7): stat row and the "Modules" list (always "Standby") merged into one live, tappable card per module (waiting / line paused, orders to serve / cart not set up, open / urgent).
+- **2026-10-27** — #6 Action feedback (H1): "Saving… / Sending… / Starting…" while busy; confirmation toast after saving a spot, saving a pick and sending a request.
+- **2026-10-27** — #7 Readability (H8 + typography): small mono labels raised from ~11px to 12.5–13px; decorative "01–04" tile numbers removed; turned-off items no longer use opacity (failed contrast), they get a dashed card / "Off" tag instead; closed requests no longer faded.
+- **2026-10-27** — #8 Consistency (H4): trash icon for removing (backspace icon stays on the keypad only); in-card confirms dismiss with "Back"; specific labels "Cancel request" and "Clear pick"; tertiary buttons are 44px.
+- **2026-10-27** — #9 Recognition (H6): crew phase notices have a "Change phase" button that opens crew Home and scrolls to the phase control.
+- **2026-10-27** — H10: Snacks lede now says picks can be changed until the cart arrives. All heuristics items done; awaiting user review before one commit + push.

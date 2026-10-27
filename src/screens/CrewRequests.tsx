@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import { isUrgent, type CrewAssistance } from '../hooks/useCrewAssistance'
 import { useFlight } from '../context/useFlight'
+import { useUndo } from '../context/useUndo'
 import { ASSIST_TYPES, type CrewAssistRequest } from '../services/assistance'
 
 const labelOf = (r: CrewAssistRequest) => ASSIST_TYPES.find((a) => a.type === r.type)?.label ?? r.type
@@ -17,9 +19,12 @@ function useNow() {
 
 const mins = (iso: string | null, now: number) => (iso ? Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60_000)) : 0)
 
-export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
+export default function CrewRequests({ assist, onChangePhase }: { assist: CrewAssistance; onChangePhase: () => void }) {
   const now = useNow()
   const { phase } = useFlight()
+  const undo = useUndo()
+  const done = (r: CrewAssistRequest) =>
+    undo.defer({ key: `req:${r.id}`, message: `${r.seat} · ${labelOf(r)} marked done`, commit: () => assist.done(r.id) })
   const total = assist.open.length + assist.onTheWay.length
 
   return (
@@ -32,9 +37,12 @@ export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
         <p className="lede">Urgent first, then oldest. Tap On my way so the passenger knows help is coming.</p>
       </div>
 
-      {assist.error && <p className="notice notice-error">{assist.error}</p>}
+      {assist.error && <ErrorNotice message={assist.error} onRetry={assist.retry} />}
       {phase === 'boarding' && (
-        <p className="notice notice-warn">Passengers can't send requests until takeoff. Set the phase on Home if that's wrong.</p>
+        <div className="notice notice-warn notice-row">
+          <span>Passengers can't send requests until takeoff.</span>
+          <button className="btn-mini" onClick={onChangePhase}>Change phase</button>
+        </div>
       )}
 
       {!assist.ready ? (
@@ -50,7 +58,7 @@ export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
                 {assist.open.map((r) => (
                   <RequestRow key={r.id} r={r} meta={`waiting ${mins(r.created_at, now)} min`}>
                     <button className="btn-mini btn-mini-go" disabled={assist.busy} onClick={() => assist.ack(r.id)}>On my way</button>
-                    <button className="btn-mini" disabled={assist.busy} onClick={() => assist.done(r.id)}>Done</button>
+                    <button className="btn-mini" disabled={assist.busy} onClick={() => done(r)}>Done</button>
                   </RequestRow>
                 ))}
               </ul>
@@ -65,7 +73,7 @@ export default function CrewRequests({ assist }: { assist: CrewAssistance }) {
               <ul className="crew-rows">
                 {assist.onTheWay.map((r) => (
                   <RequestRow key={r.id} r={r} meta={`on the way ${mins(r.ack_at, now)} min`}>
-                    <button className="btn-mini btn-mini-done" disabled={assist.busy} onClick={() => assist.done(r.id)}>Done</button>
+                    <button className="btn-mini btn-mini-done" disabled={assist.busy} onClick={() => done(r)}>Done</button>
                   </RequestRow>
                 ))}
               </ul>

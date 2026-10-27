@@ -55,7 +55,7 @@ export default function SeatEntry({ onConfirm, onBack }: Props) {
             <button className="back-btn" onClick={onBack}>
               <Icon name="back" size={18} /> Back
             </button>
-            <span className="eyebrow">Step 2 of 2</span>
+            <span className="eyebrow">Passenger</span>
           </header>
 
           <h1 className="display">Where are you sitting?</h1>

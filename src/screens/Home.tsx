@@ -31,7 +31,7 @@ function greeting() {
 
 export default function Home({ session, features, restroom, cart, picks, orders, assist, crewAssist, onOpen }: Props) {
   return session.role === 'crew'
-    ? <CrewHome features={features} restroom={restroom} orders={orders} requests={crewAssist} onOpen={onOpen} />
+    ? <CrewHome features={features} restroom={restroom} cart={cart} orders={orders} requests={crewAssist} onOpen={onOpen} />
     : <PassengerHome seat={session.seat} features={features} restroom={restroom} snacks={snackStatus(cart, picks)} help={assistStatus(assist)} onOpen={onOpen} />
 }
 
@@ -78,13 +78,12 @@ function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { sea
       </div>
 
       <div className="bento">
-        {features.map((f, i) => {
+        {features.map((f) => {
           const off = !isAvailable(f, phase)
           return (
           <button key={f.id} className={`tile tile-${f.id}${off ? ' is-off' : ''}`} onClick={() => onOpen(f.id)}>
             <span className="tile-top">
               <span className="tile-icon"><Icon name={f.icon} size={26} /></span>
-              <span className="tile-index">0{i + 1}</span>
             </span>
             <span className="tile-label">{f.label}</span>
             <span className="tile-desc">{f.description}</span>
@@ -108,16 +107,28 @@ function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { sea
   )
 }
 
-function CrewHome({ features, restroom, orders, requests, onOpen }: { features: Feature[]; restroom: RestroomQueue; orders: CrewPicks; requests: CrewAssistance; onOpen: (id: string) => void }) {
-  const openRequests = requests.open.length + requests.onTheWay.length
-  const toServe = orders.picks.filter((p) => (p.drink_id || p.snack_id) && !p.served_at).length
+// One live card per crew module: the number that matters, what it means, tap to open.
+function crewStatus(id: string, restroom: RestroomQueue, cart: Cart, orders: CrewPicks, requests: CrewAssistance) {
+  if (id === 'bathroom') {
+    if (!restroom.ready || restroom.error) return null
+    return { value: restroom.waitingCount, label: restroom.paused ? 'waiting · line paused' : 'waiting', tone: restroom.paused ? 'warn' : '' }
+  }
+  if (id === 'snacks') {
+    if (!orders.ready || orders.error || !cart.ready) return null
+    const toServe = orders.picks.filter((p) => (p.drink_id || p.snack_id) && !p.served_at).length
+    if (cart.items.length === 0) return { value: toServe, label: 'cart not set up yet', tone: 'warn' }
+    return { value: toServe, label: 'orders to serve', tone: '' }
+  }
+  if (id === 'assistance') {
+    if (!requests.ready || requests.error) return null
+    const urgent = requests.urgentOpen.length
+    return { value: requests.open.length + requests.onTheWay.length, label: urgent ? `open · ${urgent} urgent` : 'open requests', tone: urgent ? 'urgent' : '' }
+  }
+  return null
+}
+
+function CrewHome({ features, restroom, cart, orders, requests, onOpen }: { features: Feature[]; restroom: RestroomQueue; cart: Cart; orders: CrewPicks; requests: CrewAssistance; onOpen: (id: string) => void }) {
   const { flight, remaining } = useFlight()
-  // Counters stay blank until the features feeding them exist.
-  const stats = [
-    { label: requests.urgentOpen.length ? `Open requests · ${requests.urgentOpen.length} urgent` : 'Open requests', value: requests.ready && !requests.error ? String(openRequests) : '—' },
-    { label: restroom.paused ? 'Restroom queue · paused' : 'Restroom queue', value: restroom.ready && !restroom.error ? String(restroom.waitingCount) : '—' },
-    { label: 'Orders to serve', value: orders.ready && !orders.error ? String(toServe) : '—' },
-  ]
 
   return (
     <section className="home">
@@ -130,27 +141,17 @@ function CrewHome({ features, restroom, orders, requests, onOpen }: { features: 
       <FlightSetup />
 
       <div className="stats">
-        {stats.map((s) => (
-          <div key={s.label} className="stat">
-            <span className="stat-value">{s.value}</span>
-            <span className="stat-label">{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <p className="eyebrow section-label">Modules</p>
-      <div className="modules">
-        {features.map((f, i) => (
-          <button key={f.id} className="module" onClick={() => onOpen(f.id)}>
-            <span className="module-index">0{i + 1}</span>
-            <Icon name={f.icon} size={22} />
-            <span className="module-text">
-              <span className="module-label">{f.label}</span>
-              <span className="module-desc">{f.description}</span>
-            </span>
-            <span className="module-status"><span className="led" /> Standby</span>
-          </button>
-        ))}
+        {features.map((f) => {
+          const s = crewStatus(f.id, restroom, cart, orders, requests)
+          return (
+            <button key={f.id} className={`stat${s?.tone ? ` stat-${s.tone}` : ''}`} onClick={() => onOpen(f.id)}>
+              <span className="stat-name"><Icon name={f.icon} size={20} /> {f.label}</span>
+              <span className="stat-value">{s ? s.value : '—'}</span>
+              <span className="stat-label">{s ? s.label : 'Not available'}</span>
+              <span className="stat-foot">Open <Icon name="arrow" size={16} /></span>
+            </button>
+          )
+        })}
       </div>
     </section>
   )

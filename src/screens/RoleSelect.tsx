@@ -63,7 +63,7 @@ export default function RoleSelect({ onSelect }: Props) {
             <Icon name="badge" size={28} className="stub-icon" />
             <span className="stub-text">
               <span className="stub-label">Cabin crew</span>
-              <span className="stub-sub">Crew PIN required</span>
+              <span className="stub-sub">Crew sign-in required</span>
             </span>
             <Icon name="arrow" size={20} className="stub-arrow" />
           </button>

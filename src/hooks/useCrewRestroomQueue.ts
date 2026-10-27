@@ -4,7 +4,7 @@ import {
   type CrewAction, type CrewSpot,
 } from '../services/restroomQueue'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface CrewRestroomQueue {
   ready: boolean
@@ -14,6 +14,7 @@ export interface CrewRestroomQueue {
   busy: boolean
   act: (spotId: string, action: CrewAction) => Promise<void>
   setPaused: (paused: boolean) => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 // Live restroom line with seat numbers, plus crew controls. Crew screens only.
@@ -22,7 +23,7 @@ export function useCrewRestroomQueue(flightId: string): CrewRestroomQueue {
   const [spots, setSpots] = useState<CrewSpot[]>([])
   const [paused, setPausedState] = useState(false)
   const [ready, setReady] = useState(!supabase)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -32,7 +33,7 @@ export function useCrewRestroomQueue(flightId: string): CrewRestroomQueue {
       setPausedState(isPaused)
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load the restroom line.'))
+      setError(friendlyError(e, "We couldn't load the restroom line."))
     } finally {
       setReady(true)
     }
@@ -52,7 +53,7 @@ export function useCrewRestroomQueue(flightId: string): CrewRestroomQueue {
       await action()
       await refresh()
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
     } finally {
       setBusy(false)
     }
@@ -64,6 +65,7 @@ export function useCrewRestroomQueue(flightId: string): CrewRestroomQueue {
     spots,
     paused,
     busy,
+    retry: refresh,
     act: (spotId, action) => run(() => crewAction(flightId, spotId, action)),
     setPaused: (next) => run(() => savePaused(flightId, next)),
   }

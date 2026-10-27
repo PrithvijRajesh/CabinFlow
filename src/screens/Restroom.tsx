@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
+import { useUndo } from '../context/useUndo'
 import { AVG_VISIT_MINUTES, TURN_SECONDS, type RestroomQueue } from '../hooks/useRestroomQueue'
 
 function ordinal(n: number) {
@@ -15,6 +17,24 @@ function minutesAgo(iso: string | null) {
 export default function Restroom({ queue }: { queue: RestroomQueue }) {
   const { ready, error, waitingCount, mySpot, ahead, isMyTurn, busy } = queue
   const inLine = ahead !== null
+  const undo = useUndo()
+
+  // Leaving waits a few seconds so it can be undone. Joining again inside
+  // that window just keeps the old spot.
+  const leave = (message: string) => undo.defer({ key: 'restroom:leave', message, commit: queue.leave })
+  const join = async (saved?: string) => {
+    if (undo.isPending('restroom:leave')) return undo.cancel('restroom:leave')
+    if ((await queue.join()) && saved) undo.notify(saved)
+  }
+
+  // An empty line starts the 5-minute turn at once, so that tap needs a second, clear one.
+  const [confirmGo, setConfirmGo] = useState(false)
+  const confirming = confirmGo && waitingCount === 0 && !inLine
+  useEffect(() => {
+    if (!confirming) return
+    const t = setTimeout(() => setConfirmGo(false), 10_000)
+    return () => clearTimeout(t)
+  }, [confirming])
 
   // Recent outcomes worth telling the passenger about.
   const recent = !inLine && mySpot ? minutesAgo(mySpot.ended_at) : Infinity
@@ -31,7 +51,7 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
         <p className="lede">Save your spot from your seat. We'll tell you when it's your turn.</p>
       </div>
 
-      {error && <p className="notice notice-error">{error}</p>}
+      {error && <ErrorNotice message={error} onRetry={queue.retry} />}
       {timedOut && (
         <p className="notice notice-warn">Your turn timed out after 5 minutes, so the next person was called. You can join again anytime.</p>
       )}
@@ -49,7 +69,7 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
         {!ready ? (
           <div className="queue-card"><p className="eyebrow">Loading line…</p></div>
         ) : isMyTurn ? (
-          <TurnCard queue={queue} />
+          <TurnCard queue={queue} onGiveUp={() => leave('You gave up your turn')} />
         ) : inLine ? (
           <div className="queue-card">
             <p className="eyebrow">Your place</p>
@@ -61,7 +81,19 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
             <QueueDots total={waitingCount} mine={ahead} />
             <p className="queue-note">Stay seated. This screen will change when it's your turn.</p>
             <div className="queue-actions">
-              <button className="btn btn-ghost" disabled={busy} onClick={queue.leave}>Leave the line</button>
+              <button className="btn btn-ghost" disabled={busy} onClick={() => leave('You left the restroom line')}>Leave the line</button>
+            </div>
+          </div>
+        ) : confirming ? (
+          <div className="queue-card">
+            <p className="eyebrow">The restroom is free</p>
+            <p className="queue-big">Go now?</p>
+            <p className="queue-sub">Your <strong>5-minute</strong> turn starts as soon as you tap. Only start when you're ready to stand up.</p>
+            <div className="queue-actions">
+              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => { setConfirmGo(false); void join() }}>
+                {busy ? 'Starting…' : 'Start my turn'} <Icon name="arrow" size={18} />
+              </button>
+              <button className="btn btn-ghost" onClick={() => setConfirmGo(false)}>Back</button>
             </div>
           </div>
         ) : (
@@ -74,8 +106,8 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
                 : `${waitingCount === 1 ? 'person' : 'people'} in line · about ${waitingCount * AVG_VISIT_MINUTES} min wait`}
             </p>
             <div className="queue-actions">
-              <button className="btn btn-primary" disabled={busy || !!error} onClick={queue.join}>
-                {waitingCount === 0 ? 'Go now' : 'Save my spot'} <Icon name="arrow" size={18} />
+              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => (waitingCount === 0 ? setConfirmGo(true) : void join("Spot saved. Stay seated, we'll tell you when it's your turn."))}>
+                {busy ? 'Saving…' : waitingCount === 0 ? 'Use it now' : 'Save my spot'} <Icon name="arrow" size={18} />
               </button>
             </div>
           </div>
@@ -92,7 +124,7 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
   )
 }
 
-function TurnCard({ queue }: { queue: RestroomQueue }) {
+function TurnCard({ queue, onGiveUp }: { queue: RestroomQueue; onGiveUp: () => void }) {
   const calledAt = queue.mySpot?.called_at
   const [now, setNow] = useState(() => Date.now())
   const expired = useRef(false)
@@ -124,7 +156,7 @@ function TurnCard({ queue }: { queue: RestroomQueue }) {
       <div className="turn-bar"><span style={{ width: `${(left / TURN_SECONDS) * 100}%` }} /></div>
       <div className="queue-actions">
         <button className="btn btn-light" disabled={queue.busy} onClick={queue.finish}>I'm back</button>
-        <button className="btn btn-ghost" disabled={queue.busy} onClick={queue.leave}>Give up my turn</button>
+        <button className="btn btn-ghost" disabled={queue.busy} onClick={onGiveUp}>Give up my turn</button>
       </div>
     </div>
   )

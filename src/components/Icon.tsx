@@ -1,6 +1,6 @@
 export type IconName =
   | 'restroom' | 'cup' | 'bell' | 'plane' | 'seat' | 'badge'
-  | 'home' | 'cart' | 'arrow' | 'back' | 'exit' | 'delete' | 'compass'
+  | 'home' | 'cart' | 'arrow' | 'back' | 'exit' | 'delete' | 'compass' | 'alert' | 'check' | 'trash'
 
 // Hand-drawn 24px line icons. Stroke follows currentColor.
 const PATHS: Record<IconName, string> = {
@@ -17,6 +17,9 @@ const PATHS: Record<IconName, string> = {
   exit: 'M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10',
   delete: 'M9 6h11v12H9l-6-6zM12.5 9.5l5 5M17.5 9.5l-5 5',
   compass: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',
+  alert: 'M12 3.5 2.5 20h19zM12 10v4.5M12 17.5v.01',
+  check: 'M5 12.5l4.5 4.5L19 7',
+  trash: 'M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5',
 }
 
 // Solid silhouettes that read better filled than outlined.

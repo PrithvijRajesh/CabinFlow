@@ -1,4 +1,5 @@
 import FlightStrip from '../components/FlightStrip'
+import ErrorNotice from '../components/ErrorNotice'
 import { useFlight } from '../context/useFlight'
 import { statusLabel } from '../data/flight'
 import { useFlightWeather } from '../hooks/useFlightWeather'
@@ -7,7 +8,7 @@ import type { Ride, RideLeg } from '../services/flightWeather'
 // Passenger wording. "none" means nothing was reported, not a promise of smooth air.
 const RIDE: Record<Ride, { label: string; tip: string }> = {
   none: { label: 'No turbulence reported', tip: 'A good time to stretch or use the restroom.' },
-  light: { label: 'Light chop', tip: 'Some light bumps reported. Keep your seat belt fastened while seated.' },
+  light: { label: 'Light bumps', tip: 'Some light bumps reported. Keep your seat belt fastened while seated.' },
   bumpy: { label: 'Bumpy', tip: 'Bumps reported on this part of the route. The crew may pause the restroom line.' },
 }
 
@@ -27,7 +28,7 @@ function localNow(timeZone?: string | null) {
 
 export default function FlightInfo() {
   const { flight, progress, remaining, isDemo, phase } = useFlight()
-  const { weather, loading, error, missingCodes } = useFlightWeather(flight)
+  const { weather, loading, error, missingCodes, retry } = useFlightWeather(flight)
   const status = statusLabel(flight.status)
   const dest = weather?.destination
   const legs = weather?.outlook?.legs
@@ -50,9 +51,9 @@ export default function FlightInfo() {
       </div>
 
       {missingCodes && (
-        <p className="notice notice-warn">Live weather needs this flight loaded again. Sign out, then load the flight number on the welcome screen.</p>
+        <p className="notice notice-warn">Live weather isn't available for this flight yet. Your flight times are still up to date.</p>
       )}
-      {error && <p className="notice notice-error">{error}</p>}
+      {error && <ErrorNotice message={error} onRetry={retry} />}
 
       <div className="info-grid">
         <div className="info-card">
@@ -90,7 +91,7 @@ export default function FlightInfo() {
 
         <div className="info-card info-wide">
           <div className="ride-head">
-            <p className="eyebrow section-label">{phase === 'boarding' ? 'Expected ride' : 'Ride outlook'}</p>
+            <p className="eyebrow section-label">{phase === 'boarding' ? 'Expected turbulence' : 'Turbulence outlook'}</p>
             {weather && <span className="pill">Updated {new Date(weather.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
           </div>
           {phase === 'landed' ? (
@@ -98,7 +99,7 @@ export default function FlightInfo() {
           ) : legs ? (
             <RideOutlook legs={legs} current={current} usOnly={weather!.outlook!.usOnly} />
           ) : (
-            <p className="info-meta">{loading ? 'Checking the route for turbulence…' : 'Ride outlook is unavailable for this flight right now.'}</p>
+            <p className="info-meta">{loading ? 'Checking the route for turbulence…' : 'The turbulence outlook is unavailable for this flight right now.'}</p>
           )}
           <p className="info-meta">
             Based on NOAA aviation weather advisories and recent pilot reports. The seat belt sign and crew instructions always come first.
@@ -114,7 +115,7 @@ function expected(legs: RideLeg[]) {
   const bumpy = legs.filter((l) => l.ride === 'bumpy').map((l) => l.name.toLowerCase())
   const light = legs.filter((l) => l.ride === 'light').map((l) => l.name.toLowerCase())
   if (bumpy.length) return <>Some <strong className="ride-bumpy">bumps</strong> reported along the route ({bumpy.join(', ')}). The crew will keep you posted.</>
-  if (light.length) return <>Mostly calm, with <strong className="ride-light">light chop</strong> reported ({light.join(', ')}).</>
+  if (light.length) return <>Mostly calm, with <strong className="ride-light">light bumps</strong> reported ({light.join(', ')}).</>
   return <><strong className="ride-none">No turbulence reported</strong> along today's route so far.</>
 }
 

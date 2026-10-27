@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
+import { useUndo } from '../context/useUndo'
 import type { Cart } from '../hooks/useCart'
 import { describePick, type SnackPickState } from '../hooks/useSnackPick'
 import type { CartItem } from '../services/cart'
@@ -18,10 +20,12 @@ export default function Snacks({ cart, picks }: { cart: Cart; picks: SnackPickSt
       <div className="hero">
         <p className="eyebrow">Snacks & drinks · complimentary</p>
         <h1 className="display">What can we <em>bring you</em>?</h1>
-        <p className="lede">Pick one drink and one snack. The crew will have it ready when the cart reaches your row.</p>
+        <p className="lede">Pick one drink and one snack. The crew will have it ready when the cart reaches your row. You can change it until then.</p>
       </div>
 
-      {(cart.error || picks.error) && <p className="notice notice-error">{cart.error ?? picks.error}</p>}
+      {(cart.error || picks.error) && (
+        <ErrorNotice message={(cart.error ?? picks.error)!} onRetry={() => Promise.all([cart.retry(), picks.retry()])} />
+      )}
       {ranOut.map((i) => (
         <p key={i.id} className="notice notice-warn">{i.name} just ran out. Pick another {i.kind}.</p>
       ))}
@@ -43,6 +47,7 @@ export default function Snacks({ cart, picks }: { cart: Cart; picks: SnackPickSt
 
 function Picker({ cart, picks }: { cart: Cart; picks: SnackPickState }) {
   const saved = picks.pick ?? EMPTY
+  const undo = useUndo()
   const available = (id: string | null) => cart.items.some((i) => i.id === id && i.in_stock)
 
   // Start from the saved pick, minus anything that has since run out.
@@ -59,6 +64,11 @@ function Picker({ cart, picks }: { cart: Cart; picks: SnackPickState }) {
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved)
   const hasSaved = !!(picks.pick && (picks.pick.drink_id || picks.pick.snack_id))
   const summary = describePick(draft, cart.items)
+
+  async function save() {
+    undo.cancel('pick:clear')
+    if (await picks.save(draft)) undo.notify('Pick saved. The crew will bring it to your row.')
+  }
 
   const choose = (item: CartItem) => {
     if (item.kind === 'snack') {
@@ -107,10 +117,10 @@ function Picker({ cart, picks }: { cart: Cart; picks: SnackPickState }) {
         </div>
         <div className="queue-actions">
           {hasSaved && (
-            <button className="btn btn-quiet" disabled={picks.busy} onClick={() => picks.save(EMPTY)}>Clear</button>
+            <button className="btn btn-quiet" disabled={picks.busy} onClick={() => undo.defer({ key: 'pick:clear', message: 'Your pick was cleared', commit: () => picks.save(EMPTY) })}>Clear pick</button>
           )}
-          <button className="btn btn-primary" disabled={picks.busy || !dirty || !summary} onClick={() => picks.save(draft)}>
-            {hasSaved ? 'Update pick' : 'Save my pick'} <Icon name="arrow" size={18} />
+          <button className="btn btn-primary" disabled={picks.busy || !dirty || !summary} onClick={() => void save()}>
+            {picks.busy ? 'Saving…' : hasSaved ? 'Update pick' : 'Save my pick'} <Icon name="arrow" size={18} />
           </button>
         </div>
       </div>

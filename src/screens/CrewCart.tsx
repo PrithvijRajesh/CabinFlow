@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
+import { useUndo } from '../context/useUndo'
 import type { Cart } from '../hooks/useCart'
 import type { CrewPicks } from '../hooks/useCrewPicks'
 import CrewOrders from './CrewOrders'
@@ -14,7 +16,10 @@ const ITEM_TYPES: { label: string; kind: ItemKind; serve: Serve | null; icon: Ic
   { label: 'Snack', kind: 'snack', serve: null, icon: 'cart' },
 ]
 
-export default function CrewCart({ cart, orders }: { cart: Cart; orders: CrewPicks }) {
+export default function CrewCart({ cart: live, orders }: { cart: Cart; orders: CrewPicks }) {
+  // Removed items stay hidden while their undo is pending.
+  const undo = useUndo()
+  const cart = { ...live, items: live.items.filter((i) => !undo.isPending(`item:${i.id}`)) }
   // Orders is the everyday view; setup comes first only while the cart is empty.
   const [tab, setTab] = useState<'orders' | 'setup' | null>(null)
   const current = tab ?? (cart.ready && cart.items.length === 0 ? 'setup' : 'orders')
@@ -47,7 +52,7 @@ function CartSetup({ cart }: { cart: Cart }) {
         <p className="lede">Set what's on the cart. Passengers pick from this list.</p>
       </div>
 
-      {cart.error && <p className="notice notice-error">{cart.error}</p>}
+      {cart.error && <ErrorNotice message={cart.error} onRetry={cart.retry} />}
 
       {!cart.ready ? (
         <p className="crew-empty">Loading cart…</p>
@@ -73,6 +78,7 @@ function CartSetup({ cart }: { cart: Cart }) {
 }
 
 function ItemList({ title, items, cart }: { title: string; items: CartItem[]; cart: Cart }) {
+  const undo = useUndo()
   return (
     <div className="crew-list">
       <p className="eyebrow section-label">{title} · {items.length}</p>
@@ -92,8 +98,8 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
                 >
                   {item.in_stock ? 'In stock' : 'Out'}
                 </button>
-                <button className="btn-mini btn-mini-danger" disabled={cart.busy} onClick={() => cart.remove(item.id)} aria-label={`Remove ${item.name}`}>
-                  <Icon name="delete" size={16} />
+                <button className="btn-mini btn-mini-danger" disabled={cart.busy} onClick={() => undo.defer({ key: `item:${item.id}`, message: `Removed ${item.name} from the cart`, commit: () => cart.remove(item.id) })} aria-label={`Remove ${item.name}`}>
+                  <Icon name="trash" size={18} />
                 </button>
               </span>
             </li>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchAllPicks, setServed, subscribeAllPicks, type CrewPick } from '../services/snackPicks'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface CrewPicks {
   ready: boolean
@@ -9,6 +9,7 @@ export interface CrewPicks {
   picks: CrewPick[] // front to back (12A before 12C before 14A)
   busy: boolean
   markServed: (seat: string, served: boolean) => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 const seatOrder = (seat: string) => parseInt(seat, 10) * 100 + seat.charCodeAt(seat.length - 1)
@@ -18,7 +19,7 @@ const seatOrder = (seat: string) => parseInt(seat, 10) * 100 + seat.charCodeAt(s
 export function useCrewPicks(flightId: string, enabled: boolean): CrewPicks {
   const [picks, setPicks] = useState<CrewPick[]>([])
   const [ready, setReady] = useState(!supabase || !enabled)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -28,7 +29,7 @@ export function useCrewPicks(flightId: string, enabled: boolean): CrewPicks {
       setPicks(rows.sort((a, b) => seatOrder(a.seat) - seatOrder(b.seat)))
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load orders.'))
+      setError(friendlyError(e, "We couldn't load the orders."))
     } finally {
       setReady(true)
     }
@@ -48,11 +49,11 @@ export function useCrewPicks(flightId: string, enabled: boolean): CrewPicks {
       await setServed(flightId, seat, served)
       await refresh()
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
     } finally {
       setBusy(false)
     }
   }, [flightId, refresh])
 
-  return { ready, error, picks, busy, markServed }
+  return { ready, error, picks, busy, markServed, retry: refresh }
 }

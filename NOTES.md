@@ -7,7 +7,10 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Phase:** all 9 PRD features exist. Now refining features so they work properly.
 - **Done (refinement):** crew login (Supabase Auth + `crew_members`) and aircraft flight setup on crew Home (`aircraft_flights`, aircraft `DEMO-1`).
 - **Done (refinement):** flight-phase rules (before takeoff: Restroom + Assistance off, Snacks on; after landing: Restroom + Snacks off). Crew override on crew Home. UI-only enforcement.
-- **Next:** the user has noticed other issues to raise. Ask for them.
+- **Done (refinement, uncommitted):** Nielsen heuristics pass, all 9 items + H7/H10/contrast. Waiting for the user's review, then **one commit + push for the whole pass**.
+- **Undo / toast pattern:** destructive actions go through `useUndo().defer({ key, message, commit })` (5s Undo toast); screens hide pending items with `isPending(key)`. Confirmations use `useUndo().notify(message)`.
+- **Errors:** always `friendlyError(e, fallback)` from `src/lib/errors.ts` and `<ErrorNotice message onRetry />`. Every live hook exposes `retry`.
+- **Crew Home:** one live card per module (`crewStatus()` in `Home.tsx`). No separate Modules list any more.
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.

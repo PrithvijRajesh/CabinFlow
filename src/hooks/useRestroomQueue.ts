@@ -4,12 +4,7 @@ import {
   subscribeQueue, tickQueue, type MySpot, type QueueSpot,
 } from '../services/restroomQueue'
 import { supabase } from '../lib/supabase'
-
-// Supabase errors are plain objects with a message, not Error instances.
-export function errorText(e: unknown, fallback: string) {
-  const msg = (e as { message?: unknown } | null)?.message
-  return typeof msg === 'string' && msg ? msg : fallback
-}
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export const TURN_SECONDS = 5 * 60
 export const AVG_VISIT_MINUTES = 4
@@ -23,10 +18,11 @@ export interface RestroomQueue {
   ahead: number | null // spots in front of me, null if not in line
   isMyTurn: boolean
   busy: boolean
-  join: () => Promise<void>
+  join: () => Promise<boolean> // true when the spot was saved
   leave: () => Promise<void>
   finish: () => Promise<void>
   expire: () => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 // Live restroom line for one flight. `seat` is null for crew.
@@ -35,7 +31,7 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
   const [mySpot, setMySpot] = useState<MySpot | null>(null)
   const [paused, setPaused] = useState(false)
   const [ready, setReady] = useState(!supabase)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -50,7 +46,7 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
       setPaused(isPaused)
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load the restroom line.'))
+      setError(friendlyError(e, "We couldn't load the restroom line."))
     } finally {
       setReady(true)
     }
@@ -72,8 +68,10 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
     try {
       await action()
       await refresh()
+      return true
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
+      return false
     } finally {
       setBusy(false)
     }
@@ -90,9 +88,10 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
     ahead: index >= 0 ? index : null,
     isMyTurn: mySpot?.status === 'called',
     busy,
+    retry: refresh,
     join: () => run(() => joinQueue(flightId, seat!)),
-    leave: () => run(() => leaveQueue(flightId, seat!)),
-    finish: () => run(() => finishTurn(flightId, seat!)),
-    expire: () => run(() => tickQueue(flightId)),
+    leave: async () => { await run(() => leaveQueue(flightId, seat!)) },
+    finish: async () => { await run(() => finishTurn(flightId, seat!)) },
+    expire: async () => { await run(() => tickQueue(flightId)) },
   }
 }

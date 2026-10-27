@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
+import { useUndo } from '../context/useUndo'
 import type { Assistance as AssistanceState } from '../hooks/useAssistance'
 import { ASSIST_TYPES, NOTE_MAX, type AssistRequest, type AssistType } from '../services/assistance'
 
@@ -20,6 +22,7 @@ const STATUS: Record<AssistRequest['status'], { label: string; tone: string }> =
 export default function Assistance({ assist }: { assist: AssistanceState }) {
   const [picked, setPicked] = useState<AssistType | null>(null)
   const openTypes = new Set(assist.active.map((r) => r.type))
+  const undo = useUndo()
 
   return (
     <section className="assist">
@@ -29,7 +32,7 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
         <p className="lede">Tell the crew what you need. You'll see when someone is on the way.</p>
       </div>
 
-      {assist.error && <p className="notice notice-error">{assist.error}</p>}
+      {assist.error && <ErrorNotice message={assist.error} onRetry={assist.retry} />}
 
       {assist.requests.length > 0 && (
         <div className="assist-mine">
@@ -47,7 +50,7 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
                   </span>
                   <span className={`pill pill-${s.tone}`}>{s.label}</span>
                   {live && (
-                    <button className="btn-quiet" disabled={assist.busy} onClick={() => assist.cancel(r.id)}>Cancel</button>
+                    <button className="btn btn-quiet" disabled={assist.busy} onClick={() => undo.defer({ key: `req:${r.id}`, message: `${labelOf(r.type)} request cancelled`, commit: () => assist.cancel(r.id) })}>Cancel request</button>
                   )}
                 </li>
               )
@@ -88,13 +91,17 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
 }
 
 function Confirm({ type, assist, onDone }: { type: AssistType; assist: AssistanceState; onDone: () => void }) {
+  const undo = useUndo()
   const [note, setNote] = useState('')
   const info = ASSIST_TYPES.find((a) => a.type === type)!
   const needsNote = type === 'other'
   const canSend = !assist.busy && (!needsNote || note.trim().length > 0)
 
   async function send() {
-    if (await assist.send(type, needsNote ? note.trim() : null)) onDone()
+    if (await assist.send(type, needsNote ? note.trim() : null)) {
+      undo.notify("Request sent. You'll see here when crew are on the way.")
+      onDone()
+    }
   }
 
   return (
@@ -122,7 +129,7 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
 
       <div className="queue-actions">
         <button className={info.urgent ? 'btn btn-light' : 'btn btn-primary'} disabled={!canSend} onClick={send}>
-          Send to crew <Icon name="arrow" size={18} />
+          {assist.busy ? 'Sending…' : 'Send to crew'} <Icon name="arrow" size={18} />
         </button>
         <button className="btn btn-ghost" disabled={assist.busy} onClick={onDone}>Back</button>
       </div>

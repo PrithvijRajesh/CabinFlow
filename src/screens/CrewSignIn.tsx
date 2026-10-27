@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { friendlyError } from '../lib/errors'
 import Icon from '../components/Icon'
 import { isSignedInCrew, signInCrew } from '../services/crewAuth'
 
@@ -32,7 +33,7 @@ export default function CrewSignIn({ onConfirm, onBack }: Props) {
       await signInCrew(email, password)
       onConfirm()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign-in failed.')
+      setError(friendlyError(err, "Couldn't sign in right now. Please try again."))
       setPassword('')
     } finally {
       setBusy(false)

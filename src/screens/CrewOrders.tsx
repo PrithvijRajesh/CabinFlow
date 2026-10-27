@@ -1,4 +1,5 @@
 import type { Cart } from '../hooks/useCart'
+import ErrorNotice from '../components/ErrorNotice'
 import type { CrewPicks } from '../hooks/useCrewPicks'
 import { describePick } from '../hooks/useSnackPick'
 import type { CartItem } from '../services/cart'
@@ -47,7 +48,9 @@ export default function CrewOrders({ cart, orders }: { cart: Cart; orders: CrewP
         <p className="lede">Load the cart from the totals, then work down the aisle.</p>
       </div>
 
-      {(orders.error || cart.error) && <p className="notice notice-error">{orders.error ?? cart.error}</p>}
+      {(orders.error || cart.error) && (
+        <ErrorNotice message={(orders.error ?? cart.error)!} onRetry={() => Promise.all([orders.retry(), cart.retry()])} />
+      )}
 
       {!orders.ready || !cart.ready ? (
         <p className="crew-empty">Loading orders…</p>

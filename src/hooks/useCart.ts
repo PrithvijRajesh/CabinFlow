@@ -4,7 +4,7 @@ import {
   type CartItem, type ItemKind, type Serve,
 } from '../services/cart'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface Cart {
   ready: boolean
@@ -15,6 +15,7 @@ export interface Cart {
   setStock: (id: string, inStock: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
   loadStandard: () => Promise<void>
+  retry: () => Promise<void> // reload after an error
 }
 
 // Live snack cart for one flight. Crew use the write actions; passengers
@@ -22,7 +23,7 @@ export interface Cart {
 export function useCart(flightId: string): Cart {
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(!supabase)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -30,7 +31,7 @@ export function useCart(flightId: string): Cart {
       setItems(await fetchCart(flightId))
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load the cart.'))
+      setError(friendlyError(e, "We couldn't load the snack cart."))
     } finally {
       setReady(true)
     }
@@ -50,7 +51,7 @@ export function useCart(flightId: string): Cart {
       await action()
       await refresh()
     } catch (e) {
-      setError(errorText(e, 'Something went wrong.'))
+      setError(friendlyError(e, "That didn't go through. Please try again."))
     } finally {
       setBusy(false)
     }
@@ -61,6 +62,7 @@ export function useCart(flightId: string): Cart {
     error,
     items,
     busy,
+    retry: refresh,
     add: (name, kind, serve) => run(() => addItem(flightId, name, kind, serve)),
     setStock: (id, inStock) => run(() => setInStock(flightId, id, inStock)),
     remove: (id) => run(() => removeItem(flightId, id)),

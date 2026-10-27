@@ -2,21 +2,22 @@ import { useCallback, useEffect, useState } from 'react'
 import type { CartItem } from '../services/cart'
 import { fetchMyPick, savePick, subscribeMyPick, type SnackPick } from '../services/snackPicks'
 import { supabase } from '../lib/supabase'
-import { errorText } from './useRestroomQueue'
+import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface SnackPickState {
   ready: boolean
   error: string | null
   pick: SnackPick | null // what's saved for this seat
   busy: boolean
-  save: (pick: SnackPick) => Promise<void>
+  save: (pick: SnackPick) => Promise<boolean> // true when saved
+  retry: () => Promise<void> // reload after an error
 }
 
 // This seat's saved drink and snack picks, kept live. `seat` is null for crew.
 export function useSnackPick(flightId: string, seat: string | null): SnackPickState {
   const [pick, setPick] = useState<SnackPick | null>(null)
   const [ready, setReady] = useState(!supabase || !seat)
-  const [error, setError] = useState<string | null>(supabase ? null : 'Backend not configured.')
+  const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -25,7 +26,7 @@ export function useSnackPick(flightId: string, seat: string | null): SnackPickSt
       setPick(await fetchMyPick(flightId, seat))
       setError(null)
     } catch (e) {
-      setError(errorText(e, 'Could not load your picks.'))
+      setError(friendlyError(e, "We couldn't load your pick."))
     } finally {
       setReady(true)
     }
@@ -40,19 +41,21 @@ export function useSnackPick(flightId: string, seat: string | null): SnackPickSt
   }, [flightId, seat, refresh])
 
   const save = useCallback(async (next: SnackPick) => {
-    if (!seat) return
+    if (!seat) return false
     setBusy(true)
     try {
       await savePick(flightId, seat, next)
       await refresh()
+      return true
     } catch (e) {
-      setError(errorText(e, 'Could not save your picks.'))
+      setError(friendlyError(e, "We couldn't save your pick. Please try again."))
+      return false
     } finally {
       setBusy(false)
     }
   }, [flightId, seat, refresh])
 
-  return { ready, error, pick, busy, save }
+  return { ready, error, pick, busy, save, retry: refresh }
 }
 
 // "Coffee · cream · 1 sugar + Pretzels", or null when nothing is picked.

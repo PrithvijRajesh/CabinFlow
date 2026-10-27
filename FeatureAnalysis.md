@@ -392,3 +392,115 @@
 
 ### Known limits
 - The rules are enforced in the UI only. The database doesn't block, for example, a restroom join before takeoff, because the auto phase is computed in the app.
+
+## Refinement — Undo for destructive actions (Heuristics #3 and #5)
+
+### What it does
+- Actions that throw something away show a toast like **"Removed 14C from the line · Undo"** for 5 seconds, with a bar that runs down.
+  - Crew: remove from the line, No-show, Confirm back, remove a cart item, mark a request Done.
+  - Passenger: Leave the line, Give up my turn, Clear pick, Cancel a request.
+- The item disappears straight away. Tapping Undo brings it back as if nothing happened.
+- **Sign out** needs a second tap ("Tap again to sign out"), which resets after 4 seconds.
+- The crew row buttons (Call now, 🗑, Done, etc.) are at least 44px and spaced further apart, so a slip doesn't hit the neighbouring button.
+
+### How it's implemented
+- **Deferred commit, not a reverse action.** `src/context/useUndo.ts` (`useUndoQueue`) holds the action for `UNDO_SECONDS` and only then calls the hook's existing method (`act`, `remove`, `done`, `leave`, `save`, `cancel`). Undo just drops it. No backend change was needed.
+- Each action has a `key` (e.g. `spot:<id>`, `item:<id>`, `req:<id>`, `restroom:leave`, `pick:clear`). Screens call `isPending(key)` to show the result early. The key stays hidden until the hook has refreshed, so the item doesn't flash back.
+- `AppShell` owns the queue (`UndoContext`) and renders `UndoToast`. It also builds passenger "views" of the shared hooks (`restroomView`, `picksView`, `assistView`, `crewAssistView`), so Home tiles and banners agree with the screen.
+- There's one pending action at a time; a new one sends the previous one right away. Signing out (AppShell unmount) sends whatever is pending.
+- Edge cases: tapping Save my spot during a pending leave cancels the leave (you keep your old spot). Saving a new pick during a pending Clear cancels the Clear.
+
+### Why it matters
+- Nielsen #3 (user control) and #5 (error prevention): on a touch seatback or a tablet in a moving cabin, mis-taps are common. A wrong "Remove 14C" or "Give up my turn" costs a passenger their place.
+- An undo toast is the standard pattern (Gmail, iOS Mail). Unlike "Are you sure?" pop-ups, it doesn't slow down crew who meant it, which fits the "glance and fix" crew principle.
+
+### Known limits
+- During the 5 seconds, other screens (other seatbacks, other crew tablets) still see the old state.
+- If the tablet loses power within those 5 seconds, the action is never sent. That's the safe failure, but crew may need to tap again.
+
+## Refinement — Confirm before starting a restroom turn (Heuristic #5)
+
+### What it does
+- When nobody is in line, the button reads **Use it now**. Tapping it opens a confirm step in the same card: "Go now? Your 5-minute turn starts as soon as you tap." with **Start my turn** and **Not yet**.
+- The confirm closes itself after 10 seconds. If someone joins in the meantime, the card switches back to **Save my spot**, because there's no immediate turn to confirm any more.
+
+### How it's implemented
+- `confirmGo` state in `src/screens/Restroom.tsx`. `confirming` is only true while the line is still empty and you aren't in it, so live updates can't leave a stale confirm on screen.
+- It's a confirm and not an undo because starting a turn calls this seat right away and holds the restroom for everyone else. Saving a spot in a non-empty line stays one tap (it can be undone via Leave → Undo).
+
+### Why it matters
+- Before, one stray tap started a 5-minute countdown that blocked the restroom for others. Nielsen #5: when an action is costly and immediate, check before committing.
+
+## Refinement — Plain-language errors with Try again (Heuristic #9)
+
+### What it does
+- Errors no longer show raw database or network text. People see what failed in plain words, like "We couldn't load the restroom line.", and a **Try again** button (it shows "Trying…" while it runs).
+- If the device is offline: "No connection to the cabin system. It usually comes back on its own, so try again in a minute."
+- Messages we wrote on purpose still come through as they are: "That snack is not available.", "Wrong email or password.", "No flight found for UA 1234."
+- An expired crew session reads "Your crew sign-in has ended. Sign out, then sign in again."
+- Error banners have a warning icon, a red left edge and bold red text, so they stand out from the orange warnings.
+
+### How it's implemented
+- `src/lib/errors.ts`: `friendlyError(e, fallback)` lets through an allow-list of our own messages, rewrites a few, and otherwise logs the raw error with `console.error` (for us) and returns the caller's fallback. This replaces the old `errorText`, which showed whatever Supabase returned.
+- Every live hook now exposes `retry` (its existing `refresh`). `useFlightWeather` reloads through an `attempt` counter.
+- `src/components/ErrorNotice.tsx` is the one error banner, used on all screens with a load error. Screens that read two hooks retry both.
+- Form errors (crew sign-in, flight setup, add item) stay inline under the field, but go through `friendlyError` too.
+
+### Why it matters
+- Nielsen #9: say what went wrong in the user's language and offer a way out. Before, a passenger could see a Postgres message with nothing to do about it.
+- On an aircraft, connection drops are normal, so "it comes back on its own, try again" is the honest next step.
+
+### Known limits
+- After a failed *action* (e.g. Save my pick), Try again reloads the data; the passenger then taps the action again. It doesn't replay the action automatically.
+
+## Refinement — Wording that matches the app and the user (Heuristic #2)
+
+### What it does
+| Where | Before | After |
+|---|---|---|
+| Role screen, crew option | Crew PIN required | Crew sign-in required |
+| Flight Info, weather notice | "Sign out, then load the flight number on the welcome screen" | "Live weather isn't available for this flight yet. Your flight times are still up to date." |
+| Crew Home, flight setup | (nothing) | "Live weather is off for this flight. Set the flight number again to turn it on." |
+| Seat entry | Step 2 of 2 | Passenger |
+| Flight Info | Light chop · Ride outlook · Expected ride | Light bumps · Turbulence outlook · Expected turbulence |
+
+### How it's implemented
+- These are text changes in `RoleSelect.tsx`, `SeatEntry.tsx`, `FlightInfo.tsx` and `features.ts`.
+- The new crew hint in `FlightSetup.tsx` shows when the saved flight has no ICAO codes, meaning it was saved before weather existed. Setting the flight again stores them.
+
+### Why it matters
+- Nielsen #2: use the user's words, and keep the words true. The PIN and welcome-screen lookup were replaced by crew sign-in and crew flight setup, but the old wording stayed, so people would follow steps that no longer exist.
+- The fix for missing weather belongs to crew, not passengers, so the instruction moved to crew.
+- "Chop" is pilot slang. Passengers know "bumps" and "turbulence".
+
+## Refinement — Remaining heuristics (#5–#9)
+
+### What it does
+- **Crew Home shows real status (H1, H8, H7).** The always-"Standby" Modules list and the separate number row said the same thing twice, and the status light meant nothing. They're now one card per module:
+  - Restroom Queue: "3 waiting", or "waiting · line paused" in orange.
+  - Cart & Orders: "5 orders to serve", or "cart not set up yet" in orange.
+  - Requests: "2 open requests", or "open · 1 urgent" with a red border.
+  - Tapping a card opens the module, so it doubles as a shortcut.
+- **Feedback after actions (H1).** Buttons say "Saving… / Sending… / Starting…" while they run. Afterwards a short toast confirms: "Spot saved. Stay seated…", "Pick saved. The crew will bring it to your row.", "Request sent…".
+- **Readability (H8, typography).** The smallest uppercase mono labels went from ~11px to about 12.5–13px, with tighter letter-spacing so they don't get wider. The decorative "01–04" numbers on tiles and modules are gone.
+- **Contrast on turned-off items.** Turned-off features used to be drawn at 45–60% opacity, which pushed their text below the 4.5:1 contrast minimum for readable text. Their text now stays readable:
+  - Tiles become a dashed, flat card with the reason in bold.
+  - Nav items get a dimmed icon and an "Off" tag.
+  - Closed requests use a muted background instead of fading.
+- **Consistency (H4).**
+  - Removing uses a trash icon. The backspace icon is now only on the keypad, where it means delete a character.
+  - Every in-card confirm dismisses with **Back**.
+  - Ambiguous labels are now specific: "Cancel request" and "Clear pick".
+- **Recognition (H6).** Crew phase notices ("Passengers can't join the line until takeoff") have a **Change phase** button. It opens crew Home and scrolls to the phase control, so crew don't have to remember where it is.
+- **Help (H10).** Every screen already has a one-line explanation and the restroom has its 4 steps. Snacks now also says you can change your pick until the cart arrives.
+
+### How it's implemented
+- `useUndoQueue` now also has `notify(message)`, a confirmation toast without Undo that lasts 4s. Both kinds share one toast slot.
+- `useRestroomQueue.join` and `useSnackPick.save` resolve `true` on success, so screens only confirm what actually worked.
+- `crewStatus()` in `Home.tsx` builds each card from the hooks AppShell already owns. Crew Home now also receives `cart`.
+- `AppShell.changePhase()` sets Home active and scrolls to `#flight-phase` in `FlightSetup`.
+- New icons: `alert`, `check`, `trash`.
+
+### Why it matters
+- Crew glance at Home between tasks. A card that says "1 urgent" in red is a reason to act; "Standby" was noise.
+- Seatback screens are read from about an arm's length away. Labels at 11px and text faded to 45% are hard to read there, especially for older passengers.

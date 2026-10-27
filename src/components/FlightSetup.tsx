@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { friendlyError } from '../lib/errors'
 import { useFlight } from '../context/useFlight'
 import { AIRCRAFT_ID, PHASE_LABEL, autoPhase } from '../data/flight'
 import type { FlightPhase } from '../types'
@@ -18,7 +19,7 @@ export default function FlightSetup() {
       await action()
       setValue('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setError(friendlyError(err, "Couldn't update this aircraft's flight. Please try again."))
     } finally {
       setBusy(false)
     }
@@ -60,9 +61,12 @@ export default function FlightSetup() {
           )}
         </div>
         {error && <p className="hint hint-error">{error}</p>}
+        {!isDemo && !error && (!flight.origin.icao || !flight.destination.icao) && (
+          <p className="hint">Live weather is off for this flight. Set the flight number again to turn it on.</p>
+        )}
       </form>
 
-      <div className="phase-row">
+      <div className="phase-row" id="flight-phase">
         <span className="opt-label">Phase</span>
         <div className="seg" role="radiogroup" aria-label="Flight phase">
           {([null, 'boarding', 'inflight', 'landed'] as (FlightPhase | null)[]).map((p) => (

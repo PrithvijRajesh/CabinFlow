@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
 import { useFlight } from '../context/useFlight'
+import { useUndo } from '../context/useUndo'
 import { useCrewRestroomQueue } from '../hooks/useCrewRestroomQueue'
 import { TURN_SECONDS } from '../hooks/useRestroomQueue'
-import type { CrewSpot } from '../services/restroomQueue'
+import type { CrewAction, CrewSpot } from '../services/restroomQueue'
 
 // Re-renders every second so wait times and the turn countdown stay current.
 function useNow() {
@@ -22,27 +24,36 @@ function mmss(seconds: number) {
 
 const since = (iso: string | null, now: number) => (iso ? (now - new Date(iso).getTime()) / 1000 : 0)
 
-export default function CrewRestroom() {
+// `onChangePhase` jumps to the phase control on crew Home.
+export default function CrewRestroom({ onChangePhase }: { onChangePhase: () => void }) {
   const { flightId, phase } = useFlight()
   const q = useCrewRestroomQueue(flightId)
   const now = useNow()
+  const undo = useUndo()
 
-  const called = q.spots.find((s) => s.status === 'called') ?? null
-  const waiting = q.spots.filter((s) => s.status === 'waiting')
+  // Ending a turn or removing a seat waits a few seconds so it can be undone.
+  const spots = q.spots.filter((s) => !undo.isPending(`spot:${s.id}`))
+  const called = spots.find((s) => s.status === 'called') ?? null
+  const waiting = spots.filter((s) => s.status === 'waiting')
+  const endSpot = (s: CrewSpot, action: CrewAction, message: string) =>
+    undo.defer({ key: `spot:${s.id}`, message, commit: () => q.act(s.id, action) })
 
   return (
     <section className="crew-restroom">
       <div className="hero">
         <p className="eyebrow">Restroom queue · Lavatory 1</p>
         <h1 className="display">
-          {String(q.spots.length).padStart(2, '0')} <span className="dim">in line</span>
+          {String(spots.length).padStart(2, '0')} <span className="dim">in line</span>
         </h1>
         <p className="lede">Confirm turns, mark no-shows, or call a seat out of order.</p>
       </div>
 
-      {q.error && <p className="notice notice-error">{q.error}</p>}
+      {q.error && <ErrorNotice message={q.error} onRetry={q.retry} />}
       {phase !== 'inflight' && (
-        <p className="notice notice-warn">Passengers can't join the line {phase === 'boarding' ? 'until takeoff' : 'after landing'}. Set the phase on Home if that's wrong.</p>
+        <div className="notice notice-warn notice-row">
+          <span>Passengers can't join the line {phase === 'boarding' ? 'until takeoff' : 'after landing'}.</span>
+          <button className="btn-mini" onClick={onChangePhase}>Change phase</button>
+        </div>
       )}
 
       <div className={q.paused ? 'line-control paused' : 'line-control'}>
@@ -55,7 +66,7 @@ export default function CrewRestroom() {
       </div>
 
       <div className="crew-grid">
-        <NowServing spot={called} paused={q.paused} now={now} busy={q.busy} act={q.act} />
+        <NowServing spot={called} paused={q.paused} now={now} busy={q.busy} onEnd={endSpot} />
 
         <div className="crew-list">
           <p className="eyebrow section-label">Waiting · {waiting.length}</p>
@@ -72,8 +83,8 @@ export default function CrewRestroom() {
                   <span className="crew-wait">waiting {mmss(since(s.joined_at, now))}</span>
                   <span className="crew-actions">
                     <button className="btn-mini" disabled={q.busy} onClick={() => q.act(s.id, 'call_now')}>Call now</button>
-                    <button className="btn-mini btn-mini-danger" disabled={q.busy} onClick={() => q.act(s.id, 'remove')} aria-label={`Remove ${s.seat}`}>
-                      <Icon name="delete" size={16} />
+                    <button className="btn-mini btn-mini-danger" disabled={q.busy} onClick={() => endSpot(s, 'remove', `Removed ${s.seat} from the line`)} aria-label={`Remove ${s.seat}`}>
+                      <Icon name="trash" size={18} />
                     </button>
                   </span>
                 </li>
@@ -91,10 +102,10 @@ interface NowProps {
   paused: boolean
   now: number
   busy: boolean
-  act: ReturnType<typeof useCrewRestroomQueue>['act']
+  onEnd: (spot: CrewSpot, action: CrewAction, message: string) => void
 }
 
-function NowServing({ spot, paused, now, busy, act }: NowProps) {
+function NowServing({ spot, paused, now, busy, onEnd }: NowProps) {
   if (!spot) {
     return (
       <div className="now-card">
@@ -114,8 +125,8 @@ function NowServing({ spot, paused, now, busy, act }: NowProps) {
       <p className="now-sub">Turn ends in <strong>{mmss(left)}</strong>, then the next seat is called.</p>
       <div className="turn-bar"><span style={{ width: `${Math.max(0, left / TURN_SECONDS) * 100}%` }} /></div>
       <div className="queue-actions">
-        <button className="btn btn-primary" disabled={busy} onClick={() => act(spot.id, 'done')}>Confirm back</button>
-        <button className="btn btn-outline" disabled={busy} onClick={() => act(spot.id, 'skip')}>No-show</button>
+        <button className="btn btn-primary" disabled={busy} onClick={() => onEnd(spot, 'done', `${spot.seat} is back`)}>Confirm back</button>
+        <button className="btn btn-outline" disabled={busy} onClick={() => onEnd(spot, 'skip', `${spot.seat} marked as no-show`)}>No-show</button>
       </div>
     </div>
   )
