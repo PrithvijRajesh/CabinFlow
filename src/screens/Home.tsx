@@ -10,7 +10,7 @@ import { describePick, type SnackPickState } from '../hooks/useSnackPick'
 import type { CrewPicks } from '../hooks/useCrewPicks'
 import type { Assistance } from '../hooks/useAssistance'
 import type { CrewAssistance } from '../hooks/useCrewAssistance'
-import { ASSIST_TYPES } from '../services/assistance'
+import { passengerLabel } from '../services/assistance'
 
 interface Props {
   session: Session
@@ -58,7 +58,7 @@ function assistStatus(a: Assistance) {
     return `${a.active.length} requests${coming ? ` · ${coming} on the way` : ''}`
   }
   const r = a.active[0]
-  const label = ASSIST_TYPES.find((t) => t.type === r.type)?.label ?? 'Request'
+  const label = passengerLabel(r.type)
   return `${label}: ${r.status === 'ack' ? 'crew on the way' : r.seen_at ? 'seen by crew' : 'sent'}`
 }
 

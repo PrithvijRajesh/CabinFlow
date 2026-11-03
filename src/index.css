@@ -409,7 +409,7 @@ button:disabled { cursor: default; }
 .queue-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 
 .queue-turn { background: var(--accent); color: var(--accent-ink); animation: glow 2.4s ease-in-out infinite; }
-.queue-turn .eyebrow, .queue-turn .queue-sub, .queue-turn .assist-count { color: rgba(15, 27, 45, 0.85); }
+.queue-turn .eyebrow, .queue-turn .queue-sub { color: rgba(15, 27, 45, 0.85); }
 .queue-turn .queue-sub strong { color: var(--accent-ink); }
 .queue-turn .turn-bar { background: rgba(15, 27, 45, 0.2); }
 .queue-turn .turn-bar span { background: var(--accent-ink); }

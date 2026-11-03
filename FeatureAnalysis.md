@@ -524,3 +524,16 @@
 - **What it does.** The intro now reads "For everyday needs, like a blanket or a drink", followed by a calm note: "**Emergency?** Press your call button. It reaches the crew straight away." The "Feeling unwell" card says crew will see it as urgent and come first, and to press the call button if help is needed right now.
 - **How it's implemented.** Copy changes in `Assistance.tsx`, using the existing `.notice` style plus `.assist-call` (blue left border, not red, so it informs without alarming). The bottom footnote "Your call button still works as usual" is gone.
 - **Why it matters.** First-time passengers didn't know which to use, and "press your call button too" made the app sound unreliable. A clear split (app for everyday, call button for emergencies) builds trust and stops crew getting both a request and a call for the same thing.
+
+### Assistance: calmer, discreet urgent requests
+- **What it does.** Choosing "Feeling unwell" opens the same calm blue card as other requests, with a "Send urgent request" eyebrow instead of a full-screen glowing amber card. After sending, the passenger's screens call it **Urgent help** (request list, Home tile, on-the-way banner, toasts). Crew still see "Feeling unwell" with the urgent tag.
+- **How it's implemented.** `ASSIST_TYPES` entries can have a `discreet` label; `passengerLabel(type)` in `services/assistance.ts` returns it (or the normal label) and is used by `Assistance.tsx`, `Home.tsx` and `AppShell`. The confirm card dropped `queue-turn` / `btn-light`.
+- **Why it matters.** Someone feeling sick is already stressed; a flashing amber screen raises anxiety and draws attention in a dark cabin. Seatbacks are visible to neighbors, so a big "Feeling unwell" is a privacy problem. Urgency still reaches the crew, who are the ones who need it.
+
+### Assistance: optional note on every request
+- **What it does.** The send card always has a note box. For most types it says "Anything to add? (optional)" with an example that fits the type ("Two blankets, one for my child", "Grey suitcase, bin above row 14"). "Something else" still requires a note. Crew see the note on the request row.
+- **How it's implemented.**
+  - Migration `0015_assist_note_any_type.sql` replaces the 0009 note check: any type may have a 1–100 character note, and "other" must have one. `assist_request` now stores blank notes as null instead of discarding notes on non-"other" types.
+  - `ASSIST_TYPES` gained an `example` per type, used as the placeholder. The box only auto-focuses for "Something else", so an optional note doesn't pop the on-screen keyboard.
+  - Discreet requests (Feeling unwell) don't echo the note on the passenger's own list, so neighbors can't read it.
+- **Why it matters.** Fixed categories forced passengers to send a vague request, and crew then had to walk over just to ask "what do you need?". One short note saves that extra trip, which is the whole point of CabinFlow: less movement in the aisle.

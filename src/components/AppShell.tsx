@@ -22,7 +22,7 @@ import { UndoContext, useUndoQueue, type UndoValue } from '../context/useUndo'
 import UndoToast from './UndoToast'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
-import { ASSIST_TYPES } from '../services/assistance'
+import { passengerLabel } from '../services/assistance'
 
 interface Props {
   session: Session
@@ -117,7 +117,7 @@ export default function AppShell({ session, onSignOut }: Props) {
 
           {onTheWay && active !== 'assistance' && (
             <button className="turn-banner" onClick={() => go('assistance')}>
-              <Icon name="bell" size={20} /> Crew are on the way: {ASSIST_TYPES.find((t) => t.type === onTheWay.type)?.label}. <strong>View</strong>
+              <Icon name="bell" size={20} /> Crew are on the way: {passengerLabel(onTheWay.type)}. <strong>View</strong>
             </button>
           )}
 

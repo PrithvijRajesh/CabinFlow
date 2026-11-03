@@ -22,18 +22,26 @@ export interface CrewAssistRequest extends AssistRequest {
   seat: string
 }
 
-// Shown on passenger and crew screens. "Something else" needs a note.
-export const ASSIST_TYPES: { type: AssistType; label: string; hint: string; urgent?: boolean }[] = [
-  { type: 'unwell', label: 'Feeling unwell', hint: 'Dizzy, sick or in pain', urgent: true },
-  { type: 'blanket', label: 'Blanket or pillow', hint: 'Cold, or want to rest' },
-  { type: 'drink', label: 'Water or a drink', hint: 'Outside of cart service' },
-  { type: 'bag', label: 'Help with a bag', hint: 'Overhead bin or under seat' },
-  { type: 'cleanup', label: 'Spill or cleanup', hint: 'Something got messy' },
-  { type: 'seat', label: 'Seat or screen problem', hint: "Something isn't working" },
-  { type: 'other', label: 'Something else', hint: 'Tell us in a few words' },
+// Shown on passenger and crew screens. Any type can carry a note; "Something else" needs one.
+// `discreet` replaces the label on passenger screens once sent, since
+// neighbors can see the seatback.
+export const ASSIST_TYPES: { type: AssistType; label: string; hint: string; example: string; urgent?: boolean; discreet?: string }[] = [
+  { type: 'unwell', label: 'Feeling unwell', hint: 'Dizzy, sick or in pain', example: 'e.g. Feeling faint', urgent: true, discreet: 'Urgent help' },
+  { type: 'blanket', label: 'Blanket or pillow', hint: 'Cold, or want to rest', example: 'e.g. Two blankets, one for my child' },
+  { type: 'drink', label: 'Water or a drink', hint: 'Outside of cart service', example: 'e.g. Still water, no ice' },
+  { type: 'bag', label: 'Help with a bag', hint: 'Overhead bin or under seat', example: 'e.g. Grey suitcase, bin above row 14' },
+  { type: 'cleanup', label: 'Spill or cleanup', hint: 'Something got messy', example: 'e.g. Coffee spilled on the seat' },
+  { type: 'seat', label: 'Seat or screen problem', hint: "Something isn't working", example: "e.g. Screen won't turn on" },
+  { type: 'other', label: 'Something else', hint: 'Tell us in a few words', example: "e.g. My child's seat belt is stuck" },
 ]
 
 export const NOTE_MAX = 100
+
+// Passenger-facing name for a sent request.
+export const passengerLabel = (t: AssistType) => {
+  const a = ASSIST_TYPES.find((x) => x.type === t)
+  return a?.discreet ?? a?.label ?? t
+}
 
 // Recently closed requests stay visible this long, so "Done" can be seen.
 const RECENT_MINUTES = 15

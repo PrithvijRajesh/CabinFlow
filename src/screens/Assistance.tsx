@@ -3,9 +3,7 @@ import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
 import { useUndo } from '../context/useUndo'
 import type { Assistance as AssistanceState } from '../hooks/useAssistance'
-import { ASSIST_TYPES, NOTE_MAX, type AssistRequest, type AssistType } from '../services/assistance'
-
-const labelOf = (t: AssistType) => ASSIST_TYPES.find((a) => a.type === t)?.label ?? t
+import { ASSIST_TYPES, NOTE_MAX, passengerLabel as labelOf, type AssistRequest, type AssistType } from '../services/assistance'
 
 function ago(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000)
@@ -46,12 +44,14 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
           <ul className="assist-list">
             {assist.requests.map((r) => {
               const s = statusOf(r)
+              // Neighbors can see the screen, so discreet requests hide the note.
+              const discreet = !!ASSIST_TYPES.find((a) => a.type === r.type)?.discreet
               const live = r.status === 'open' || r.status === 'ack'
               return (
                 <li key={r.id} className={`assist-item is-${s.tone}`}>
                   <span className="assist-item-text">
                     <span className="assist-item-label">{labelOf(r.type)}</span>
-                    {r.note && <span className="assist-item-note">“{r.note}”</span>}
+                    {r.note && !discreet && <span className="assist-item-note">“{r.note}”</span>}
                     <span className="assist-item-meta">Sent {ago(r.created_at)}</span>
                     {s.hint && <span className="assist-item-note">{s.hint}</span>}
                   </span>
@@ -103,15 +103,15 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
   const canSend = !assist.busy && (!needsNote || note.trim().length > 0)
 
   async function send() {
-    if (await assist.send(type, needsNote ? note.trim() : null)) {
+    if (await assist.send(type, note.trim() || null)) {
       undo.notify("Request sent. We'll let you know when crew are on the way.")
       onDone()
     }
   }
 
   return (
-    <div className={info.urgent ? 'queue-card queue-turn' : 'queue-card'}>
-      <p className="eyebrow">Send request</p>
+    <div className="queue-card">
+      <p className="eyebrow">{info.urgent ? 'Send urgent request' : 'Send request'}</p>
       <p className="assist-confirm-title">{info.label}</p>
 
       {!info.urgent && (
@@ -122,22 +122,20 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
         <p className="queue-sub">Crew will see this as <strong>urgent</strong> and come to you first. If you need help right now, press your call button.</p>
       )}
 
-      {needsNote && (
-        <label className="assist-note">
-          <span className="queue-sub">What do you need?</span>
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))}
-            placeholder="e.g. My child's seat belt is stuck"
-            rows={2}
-            autoFocus
-          />
-          <span className="assist-count">{note.length}/{NOTE_MAX}</span>
-        </label>
-      )}
+      <label className="assist-note">
+        <span className="queue-sub">{needsNote ? 'What do you need?' : 'Anything to add? (optional)'}</span>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))}
+          placeholder={info.example}
+          rows={2}
+          autoFocus={needsNote}
+        />
+        <span className="assist-count">{note.length}/{NOTE_MAX}</span>
+      </label>
 
       <div className="queue-actions">
-        <button className={info.urgent ? 'btn btn-light' : 'btn btn-primary'} disabled={!canSend} onClick={send}>
+        <button className="btn btn-primary" disabled={!canSend} onClick={send}>
           {assist.busy ? 'Sending…' : 'Send to crew'} <Icon name="arrow" size={18} />
         </button>
         <button className="btn btn-ghost" disabled={assist.busy} onClick={onDone}>Back</button>

@@ -31,6 +31,6 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-MVP demo polish. Going feature by feature through the eyes of a first-time passenger, fixing pitfalls one at a time. Commit and push after each fix.
+MVP demo polish. Going feature by feature through the eyes of a first-time passenger, fixing pitfalls one at a time. Commit and push once per feature pass (all fixes for that feature together).
 
-- Now: Assistance. Done: #19 (crew-on-the-way banner), #17/#18 (seen by crew + wait-time expectations), #3/#12 (call-button explainer). Remaining shortlist: #11/#13 (calmer, discreet urgent card), #5 (optional note on every type).
+- Now: Assistance. Done: #19 (crew-on-the-way banner), #17/#18 (seen by crew + wait-time expectations), #3/#12 (call-button explainer), #11/#13 (calmer, discreet urgent card), #5 (optional note on every type). Shortlist done; commit the pass once the user signs off.
