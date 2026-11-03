@@ -4,7 +4,7 @@ import Icon from '../components/Icon'
 import { useFlight } from '../context/useFlight'
 import { useUndo } from '../context/useUndo'
 import { useCrewRestroomQueue } from '../hooks/useCrewRestroomQueue'
-import { TURN_SECONDS } from '../hooks/useRestroomQueue'
+import { CALL_SECONDS, LONG_VISIT_MINUTES, RELEASE_MINUTES } from '../hooks/useRestroomQueue'
 import type { CrewAction, CrewSpot } from '../services/restroomQueue'
 
 // Re-renders every second so wait times and the turn countdown stay current.
@@ -116,14 +116,30 @@ function NowServing({ spot, paused, now, busy, onEnd }: NowProps) {
     )
   }
 
-  const left = TURN_SECONDS - since(spot.called_at, now)
+  const left = CALL_SECONDS - since(spot.called_at, now)
+  const inUse = since(spot.going_at, now)
+  const long = !!spot.going_at && inUse >= LONG_VISIT_MINUTES * 60
 
   return (
-    <div className="now-card now-active">
-      <p className="eyebrow">Now · called</p>
-      <p className="now-seat">{spot.seat}</p>
-      <p className="now-sub">Turn ends in <strong>{mmss(left)}</strong>, then the next seat is called.</p>
-      <div className="turn-bar"><span style={{ width: `${Math.max(0, left / TURN_SECONDS) * 100}%` }} /></div>
+    <div className={`now-card now-active${long ? ' now-long' : ''}`}>
+      {spot.going_at ? (
+        <>
+          <p className="eyebrow">Now · in use {mmss(inUse)}</p>
+          <p className="now-seat">{spot.seat}</p>
+          <p className="now-sub">
+            {long
+              ? <><strong>Long visit.</strong> You may want to check on them. Released automatically at {RELEASE_MINUTES} min.</>
+              : 'On their way or inside. No clock for the passenger.'}
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="eyebrow">Now · called</p>
+          <p className="now-seat">{spot.seat}</p>
+          <p className="now-sub">Waiting for them to reply. <strong>{mmss(left)}</strong> left, then the next seat is called.</p>
+          <div className="turn-bar"><span style={{ width: `${Math.max(0, left / CALL_SECONDS) * 100}%` }} /></div>
+        </>
+      )}
       <div className="queue-actions">
         <button className="btn btn-primary" disabled={busy} onClick={() => onEnd(spot, 'done', `${spot.seat} is back`)}>Confirm back</button>
         <button className="btn btn-outline" disabled={busy} onClick={() => onEnd(spot, 'skip', `${spot.seat} marked as no-show`)}>No-show</button>

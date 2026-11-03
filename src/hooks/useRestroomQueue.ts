@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  fetchActiveQueue, fetchMySpot, fetchPaused, finishTurn, joinQueue, leaveQueue,
+  fetchActiveQueue, fetchMySpot, fetchPaused, finishTurn, joinQueue, leaveQueue, startGoing,
   subscribeQueue, tickQueue, type MySpot, type QueueSpot,
 } from '../services/restroomQueue'
 import { supabase } from '../lib/supabase'
 import { NO_BACKEND, friendlyError } from '../lib/errors'
 
-export const TURN_SECONDS = 5 * 60
+// Two-phase turn (times match restroom_tick in migration 0016): once called,
+// a passenger has CALL_SECONDS to say they're heading there. After that no
+// clock runs; crew see a long-visit flag, then the turn is released.
+export const CALL_SECONDS = 2 * 60
+export const LONG_VISIT_MINUTES = 10
+export const RELEASE_MINUTES = 15
 export const AVG_VISIT_MINUTES = 4
 
 export interface RestroomQueue {
@@ -16,9 +21,12 @@ export interface RestroomQueue {
   paused: boolean // crew paused the line (seatbelt sign)
   mySpot: MySpot | null
   ahead: number | null // spots in front of me, null if not in line
-  isMyTurn: boolean
+  isMyTurn: boolean // called: in the 2-minute window or already gone
+  isGoing: boolean // tapped "I'm heading there"
   busy: boolean
   join: () => Promise<boolean> // true when the spot was saved
+  goNow: () => Promise<void> // empty line: join and head there in one go
+  going: () => Promise<void>
   leave: () => Promise<void>
   finish: () => Promise<void>
   expire: () => Promise<void>
@@ -87,9 +95,12 @@ export function useRestroomQueue(flightId: string, seat: string | null): Restroo
     mySpot,
     ahead: index >= 0 ? index : null,
     isMyTurn: mySpot?.status === 'called',
+    isGoing: mySpot?.status === 'called' && !!mySpot.going_at,
     busy,
     retry: refresh,
     join: () => run(() => joinQueue(flightId, seat!)),
+    goNow: async () => { await run(async () => { await joinQueue(flightId, seat!); await startGoing(flightId, seat!) }) },
+    going: async () => { await run(() => startGoing(flightId, seat!)) },
     leave: async () => { await run(() => leaveQueue(flightId, seat!)) },
     finish: async () => { await run(() => finishTurn(flightId, seat!)) },
     expire: async () => { await run(() => tickQueue(flightId)) },

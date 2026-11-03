@@ -138,7 +138,7 @@
 ### Known limits
 - Crew PIN is checked in the browser only, so anyone with the publishable key could call the crew functions. Real crew login fixes this later.
 - A fixed 5-minute turn covers both "did they see it" and "how long they're gone".
-- **Planned improvement (post-MVP):** two-phase turn: 2 min to tap "I'm going" (else auto-skip), then no visible timer while in use, a passive "long visit" flag for crew at 10 min, and auto-release at 15 min.
+- **Two-phase turn (done 2026-11-02):** see "Restroom: two-phase turn" under MVP demo polish.
 
 ## Feature 4 — Crew snack cart setup
 
@@ -537,3 +537,32 @@
   - `ASSIST_TYPES` gained an `example` per type, used as the placeholder. The box only auto-focuses for "Something else", so an optional note doesn't pop the on-screen keyboard.
   - Discreet requests (Feeling unwell) don't echo the note on the passenger's own list, so neighbors can't read it.
 - **Why it matters.** Fixed categories forced passengers to send a vague request, and crew then had to walk over just to ask "what do you need?". One short note saves that extra trip, which is the whole point of CabinFlow: less movement in the aisle.
+
+### Restroom: two-phase turn
+- **What it does.**
+  - When called, the passenger sees **Ready?** with a 2-minute bar and taps **I'm heading there**. If they don't answer in 2 minutes, the next person is called.
+  - Once they've tapped, there's **no clock**. The card says "Take your time", explains that a locked door means someone outside the line is inside, and that the turn is still theirs. They tap **I'm back** when seated.
+  - Crew see "Now · called" with the 2-minute countdown, then "Now · in use 3:12". At 10 minutes the card turns red: "Long visit. You may want to check on them." At 15 minutes the turn is released automatically.
+  - With an empty line, "Use it now" → "I'm heading there" joins and holds it in one step.
+- **How it's implemented.**
+  - Migration `0016_restroom_two_phase.sql` adds `going_at` and a passenger function `restroom_going(flight, seat)`. `restroom_tick` now skips called seats with no `going_at` after 2 min and marks gone seats `done` after 15 min (`ended_by` stays null, so it doesn't read as a crew action). `restroom_set_paused` only sends back a seat that hasn't left yet; `call_now` clears `going_at` on the seat it sends back.
+  - `useRestroomQueue` exposes `isGoing`, `going()` and `goNow()`, plus `CALL_SECONDS`, `LONG_VISIT_MINUTES`, `RELEASE_MINUTES` (matching the SQL). `TurnCard` in `Restroom.tsx` shows the calm in-use card or `CallCard`. The "your turn" banner only shows before they've answered.
+- **Why it matters.** The old 5-minute clock counted getting out of a window seat, walking, and waiting at a door someone else had locked. People were rushed, and could be "timed out" while still inside, sending the next person to a locked door. Now the clock only measures whether someone is responding, which is what the queue actually needs to know.
+
+### Restroom: undo on "I'm back"
+- **What it does.** Tapping **I'm back** shows "Welcome back. The next person will be called." with **Undo** for 5 seconds. Undo puts the passenger straight back on their turn.
+- **How it's implemented.** Same `useUndo().defer` pattern as leaving the line, with key `restroom:back`. While it's pending, `restroomView` in `AppShell` shows the spot as already done (so the "Welcome back" notice appears and the banner hides). Rejoining inside the 5 seconds ends the old turn first, otherwise the server would ignore the join.
+- **Why it matters.** "I'm back" can't be reversed on the server: the next person is called at once. A stray tap before leaving the seat used to send the passenger to the back of the line.
+
+### Restroom: honest wait times
+- **What it does.** When crew pause the line, the minutes disappear: "2 people ahead of you · on hold while the line is paused", "3 people in line · line paused", and the Home tile says "· paused". The note explains that she keeps her place and the line moves when crew resume. When running, estimates are a range, e.g. "about 6–10 min".
+- **How it's implemented.** `waitText(people, paused)` in `Restroom.tsx` builds the text from `AVG_VISIT_MINUTES` ± 1 per person. `restroomStatus()` in `Home.tsx` adds the paused state.
+- **Why it matters.** A ticking "about 8 min" that never moves during turbulence teaches passengers the number is fake, and they stop trusting the line. A range is closer to reality, and saying "paused" explains the wait instead of hiding it.
+
+### Restroom: look away, discreet, plain numbers
+- **What it does.**
+  - The intro, the in-line note, the "Spot saved" toast and step 02 now say she can keep watching her movie and a banner will appear on any screen when it's her turn.
+  - The banner reads "Your turn is ready. Open" instead of naming the restroom, and the amber "Ready?" card no longer pulses.
+  - The passenger's line count is a plain "2" instead of "02". Crew screens keep the padded ops-console style.
+- **How it's implemented.** Copy changes in `Restroom.tsx` and `AppShell.tsx`; `.queue-call` turns off the glow animation on the call card only.
+- **Why it matters.** The line is meant to let people relax. If they think they have to stare at the screen, they don't trust it and drift into the aisle anyway. Neighbors don't need to read "restroom" over a shoulder, a pulsing card is harsh in a dark cabin, and "02" reads like a machine.

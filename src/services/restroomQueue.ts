@@ -14,6 +14,7 @@ export interface QueueSpot {
 
 export interface MySpot extends QueueSpot {
   called_at: string | null
+  going_at: string | null // tapped "I'm heading there"
   ended_at: string | null
   ended_by: 'crew' | null
 }
@@ -22,6 +23,7 @@ export interface MySpot extends QueueSpot {
 export interface CrewSpot extends QueueSpot {
   seat: string
   called_at: string | null
+  going_at: string | null
 }
 
 export type CrewAction = 'done' | 'skip' | 'call_now' | 'remove'
@@ -46,7 +48,7 @@ export async function fetchActiveQueue(flightId: string): Promise<QueueSpot[]> {
 export async function fetchCrewQueue(flightId: string): Promise<CrewSpot[]> {
   const { data, error } = await client()
     .from('restroom_queue')
-    .select('id, seat, status, joined_at, called_at')
+    .select('id, seat, status, joined_at, called_at, going_at')
     .eq('flight_id', flightId)
     .in('status', ['waiting', 'called'])
     .order('joined_at')
@@ -69,7 +71,7 @@ export async function fetchPaused(flightId: string): Promise<boolean> {
 export async function fetchMySpot(flightId: string, seat: string): Promise<MySpot | null> {
   const { data, error } = await client()
     .from('restroom_queue')
-    .select('id, status, joined_at, called_at, ended_at, ended_by')
+    .select('id, status, joined_at, called_at, going_at, ended_at, ended_by')
     .eq('flight_id', flightId)
     .eq('seat', seat)
     .order('joined_at', { ascending: false })
@@ -87,6 +89,7 @@ async function rpc(fn: string, args: Record<string, string | boolean>) {
 export const joinQueue = (flightId: string, seat: string) => rpc('restroom_join', { p_flight: flightId, p_seat: seat })
 export const leaveQueue = (flightId: string, seat: string) => rpc('restroom_finish', { p_flight: flightId, p_seat: seat, p_status: 'left' })
 export const finishTurn = (flightId: string, seat: string) => rpc('restroom_finish', { p_flight: flightId, p_seat: seat, p_status: 'done' })
+export const startGoing = (flightId: string, seat: string) => rpc('restroom_going', { p_flight: flightId, p_seat: seat })
 export const tickQueue = (flightId: string) => rpc('restroom_tick', { p_flight: flightId })
 export const crewAction = (flightId: string, spotId: string, action: CrewAction) =>
   rpc('restroom_crew_action', { p_flight: flightId, p_id: spotId, p_action: action })

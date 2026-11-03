@@ -2,12 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import ErrorNotice from '../components/ErrorNotice'
 import Icon from '../components/Icon'
 import { useUndo } from '../context/useUndo'
-import { AVG_VISIT_MINUTES, TURN_SECONDS, type RestroomQueue } from '../hooks/useRestroomQueue'
+import { AVG_VISIT_MINUTES, CALL_SECONDS, type RestroomQueue } from '../hooks/useRestroomQueue'
 
 function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100
   return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
+// Visits vary, so give a range. While paused nobody moves, so give no number.
+function waitText(people: number, paused: boolean) {
+  if (paused) return 'on hold while the line is paused'
+  return `about ${people * (AVG_VISIT_MINUTES - 1)}–${people * (AVG_VISIT_MINUTES + 1)} min`
 }
 
 function minutesAgo(iso: string | null) {
@@ -22,12 +28,16 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
   // Leaving waits a few seconds so it can be undone. Joining again inside
   // that window just keeps the old spot.
   const leave = (message: string) => undo.defer({ key: 'restroom:leave', message, commit: queue.leave })
+  // "I'm back" ends the turn for good, so a stray tap can be undone too.
+  const back = () => undo.defer({ key: 'restroom:back', message: 'Welcome back. The next person will be called.', commit: queue.finish })
   const join = async (saved?: string) => {
     if (undo.isPending('restroom:leave')) return undo.cancel('restroom:leave')
+    // Rejoining right after "I'm back": end that turn first, or the join is ignored.
+    if (undo.isPending('restroom:back')) { undo.cancel('restroom:back'); await queue.finish() }
     if ((await queue.join()) && saved) undo.notify(saved)
   }
 
-  // An empty line starts the 5-minute turn at once, so that tap needs a second, clear one.
+  // An empty line holds the restroom for you at once, so that tap needs a second, clear one.
   const [confirmGo, setConfirmGo] = useState(false)
   const confirming = confirmGo && waitingCount === 0 && !inLine
   useEffect(() => {
@@ -48,12 +58,12 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
       <div className="hero">
         <p className="eyebrow">Restroom line</p>
         <h1 className="display">Skip the aisle queue.</h1>
-        <p className="lede">Save your spot from your seat. We'll tell you when it's your turn.</p>
+        <p className="lede">Save your spot from your seat, then keep watching your movie. We'll let you know on screen when it's your turn.</p>
       </div>
 
       {error && <ErrorNotice message={error} onRetry={queue.retry} />}
       {timedOut && (
-        <p className="notice notice-warn">Your turn timed out after 5 minutes, so the next person was called. You can join again anytime.</p>
+        <p className="notice notice-warn">We didn't hear back within 2 minutes, so the next person was called. You can join again anytime.</p>
       )}
       {crewEnded && (
         <p className="notice notice-warn">
@@ -69,17 +79,17 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
         {!ready ? (
           <div className="queue-card"><p className="eyebrow">Loading line…</p></div>
         ) : isMyTurn ? (
-          <TurnCard queue={queue} onGiveUp={() => leave('You gave up your turn')} />
+          <TurnCard queue={queue} onBack={back} onGiveUp={() => leave('You gave up your turn')} />
         ) : inLine ? (
           <div className="queue-card">
             <p className="eyebrow">Your place</p>
             <p className="queue-big">{ordinal(ahead + 1)}</p>
             <p className="queue-sub">
               {ahead === 0 ? 'You are next.' : `${ahead} ${ahead === 1 ? 'person' : 'people'} ahead of you`}
-              {' · '}about {Math.max(1, ahead) * AVG_VISIT_MINUTES} min
+              {' · '}{waitText(Math.max(1, ahead), queue.paused)}
             </p>
             <QueueDots total={waitingCount} mine={ahead} />
-            <p className="queue-note">Stay seated. This screen will change when it's your turn.</p>
+            <p className="queue-note">{queue.paused ? "Stay seated. You keep your place, and the line moves again when the crew resume it." : "Stay seated and enjoy your movie. A banner appears on any screen when it's your turn."}</p>
             <div className="queue-actions">
               <button className="btn btn-ghost" disabled={busy} onClick={() => leave('You left the restroom line')}>Leave the line</button>
             </div>
@@ -88,10 +98,10 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
           <div className="queue-card">
             <p className="eyebrow">The restroom is free</p>
             <p className="queue-big">Go now?</p>
-            <p className="queue-sub">Your <strong>5-minute</strong> turn starts as soon as you tap. Only start when you're ready to stand up.</p>
+            <p className="queue-sub">We'll hold it for you while you go. Only tap when you're ready to stand up.</p>
             <div className="queue-actions">
-              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => { setConfirmGo(false); void join() }}>
-                {busy ? 'Starting…' : 'Start my turn'} <Icon name="arrow" size={18} />
+              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => { setConfirmGo(false); void queue.goNow() }}>
+                {busy ? 'Starting…' : "I'm heading there"} <Icon name="arrow" size={18} />
               </button>
               <button className="btn btn-ghost" onClick={() => setConfirmGo(false)}>Back</button>
             </div>
@@ -99,14 +109,14 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
         ) : (
           <div className="queue-card">
             <p className="eyebrow">Right now</p>
-            <p className="queue-big">{String(waitingCount).padStart(2, '0')}</p>
+            <p className="queue-big">{waitingCount}</p>
             <p className="queue-sub">
               {waitingCount === 0
                 ? 'No one is waiting. The restroom is free.'
-                : `${waitingCount === 1 ? 'person' : 'people'} in line · about ${waitingCount * AVG_VISIT_MINUTES} min wait`}
+                : `${waitingCount === 1 ? 'person' : 'people'} in line · ${queue.paused ? 'line paused' : `${waitText(waitingCount, false)} wait`}`}
             </p>
             <div className="queue-actions">
-              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => (waitingCount === 0 ? setConfirmGo(true) : void join("Spot saved. Stay seated, we'll tell you when it's your turn."))}>
+              <button className="btn btn-primary" disabled={busy || !!error} onClick={() => (waitingCount === 0 ? setConfirmGo(true) : void join("Spot saved. Keep watching, we'll show a banner when it's your turn."))}>
                 {busy ? 'Saving…' : waitingCount === 0 ? 'Use it now' : 'Save my spot'} <Icon name="arrow" size={18} />
               </button>
             </div>
@@ -115,8 +125,8 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
 
         <ol className="how">
           <li><span className="how-n">01</span><span>Save your spot and stay in your seat.</span></li>
-          <li><span className="how-n">02</span><span>Watch your place move up. No standing in the aisle.</span></li>
-          <li><span className="how-n">03</span><span>When it's your turn you have 5 minutes to go.</span></li>
+          <li><span className="how-n">02</span><span>Watch a movie or rest. No standing in the aisle.</span></li>
+          <li><span className="how-n">03</span><span>When it's your turn, tap <em>I'm heading there</em> within 2 minutes.</span></li>
           <li><span className="how-n">04</span><span>Tap <em>I'm back</em> so the next person is called.</span></li>
         </ol>
       </div>
@@ -124,7 +134,26 @@ export default function Restroom({ queue }: { queue: RestroomQueue }) {
   )
 }
 
-function TurnCard({ queue, onGiveUp }: { queue: RestroomQueue; onGiveUp: () => void }) {
+function TurnCard({ queue, onBack, onGiveUp }: { queue: RestroomQueue; onBack: () => void; onGiveUp: () => void }) {
+  if (queue.isGoing) {
+    // No clock once they've gone: being timed out while inside is the worst case.
+    return (
+      <div className="queue-card">
+        <p className="eyebrow">Your turn</p>
+        <p className="queue-big">Take your time</p>
+        <p className="queue-sub">The restroom is held for you. If the door is locked, someone outside the line is inside. Your turn is still yours.</p>
+        <p className="queue-note">Tap when you're back in your seat so the next person is called.</p>
+        <div className="queue-actions">
+          <button className="btn btn-primary" disabled={queue.busy} onClick={onBack}>I'm back</button>
+        </div>
+      </div>
+    )
+  }
+  return <CallCard queue={queue} onGiveUp={onGiveUp} />
+}
+
+// Called, not yet heading there: a short window to answer.
+function CallCard({ queue, onGiveUp }: { queue: RestroomQueue; onGiveUp: () => void }) {
   const calledAt = queue.mySpot?.called_at
   const [now, setNow] = useState(() => Date.now())
   const expired = useRef(false)
@@ -135,7 +164,7 @@ function TurnCard({ queue, onGiveUp }: { queue: RestroomQueue; onGiveUp: () => v
   }, [])
 
   const elapsed = calledAt ? Math.floor((now - new Date(calledAt).getTime()) / 1000) : 0
-  const left = Math.max(0, TURN_SECONDS - elapsed)
+  const left = Math.max(0, CALL_SECONDS - elapsed)
 
   // Hand the turn on as soon as the timer runs out.
   useEffect(() => {
@@ -149,13 +178,13 @@ function TurnCard({ queue, onGiveUp }: { queue: RestroomQueue; onGiveUp: () => v
   const ss = String(left % 60).padStart(2, '0')
 
   return (
-    <div className="queue-card queue-turn" role="alert">
+    <div className="queue-card queue-turn queue-call" role="alert">
       <p className="eyebrow">It's your turn</p>
-      <p className="queue-big">Go now</p>
-      <p className="queue-sub">The restroom is held for you for <strong>{mm}:{ss}</strong></p>
-      <div className="turn-bar"><span style={{ width: `${(left / TURN_SECONDS) * 100}%` }} /></div>
+      <p className="queue-big">Ready?</p>
+      <p className="queue-sub">Tap within <strong>{mm}:{ss}</strong> to hold the restroom. There's no rush once you're on your way.</p>
+      <div className="turn-bar"><span style={{ width: `${(left / CALL_SECONDS) * 100}%` }} /></div>
       <div className="queue-actions">
-        <button className="btn btn-light" disabled={queue.busy} onClick={queue.finish}>I'm back</button>
+        <button className="btn btn-light" disabled={queue.busy} onClick={queue.going}>I'm heading there</button>
         <button className="btn btn-ghost" disabled={queue.busy} onClick={onGiveUp}>Give up my turn</button>
       </div>
     </div>

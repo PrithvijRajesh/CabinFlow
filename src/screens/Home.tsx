@@ -38,8 +38,11 @@ export default function Home({ session, features, restroom, cart, picks, orders,
 // Live one-line status for the restroom tile.
 function restroomStatus(q: RestroomQueue) {
   if (!q.ready || q.error) return null
+  if (q.isGoing) return 'Held for you'
   if (q.isMyTurn) return "It's your turn"
-  if (q.ahead !== null) return q.ahead === 0 ? "You're next" : `You're ${q.ahead + 1} in line`
+  const paused = q.paused ? ' · paused' : ''
+  if (q.ahead !== null) return (q.ahead === 0 ? "You're next" : `You're ${q.ahead + 1} in line`) + paused
+  if (q.paused) return 'Line paused'
   return q.waitingCount === 0 ? 'No line right now' : `${q.waitingCount} waiting`
 }
 

@@ -109,9 +109,9 @@ export default function AppShell({ session, onSignOut }: Props) {
             </span>
           </header>
 
-          {restroom.isMyTurn && !isOff('bathroom') && active !== 'bathroom' && (
+          {restroom.isMyTurn && !restroom.isGoing && !isOff('bathroom') && active !== 'bathroom' && (
             <button className="turn-banner" onClick={() => go('bathroom')}>
-              <Icon name="restroom" size={20} /> It's your turn for the restroom. <strong>Open</strong>
+              <Icon name="restroom" size={20} /> Your turn is ready. <strong>Open</strong>
             </button>
           )}
 
@@ -158,8 +158,12 @@ export default function AppShell({ session, onSignOut }: Props) {
 }
 
 function restroomView(q: RestroomQueue, undo: UndoValue): RestroomQueue {
-  if (!undo.isPending('restroom:leave') || q.ahead === null) return q
-  return { ...q, mySpot: null, ahead: null, isMyTurn: false, waitingCount: q.waitingCount - 1 }
+  if (q.ahead === null || !q.mySpot) return q
+  const gone = { ahead: null, isMyTurn: false, isGoing: false, waitingCount: q.waitingCount - 1 }
+  if (undo.isPending('restroom:leave')) return { ...q, ...gone, mySpot: null }
+  // Shown as already back, so the screen says "Welcome back".
+  if (undo.isPending('restroom:back')) return { ...q, ...gone, mySpot: { ...q.mySpot, status: 'done', ended_at: new Date().toISOString(), ended_by: null } }
+  return q
 }
 
 function picksView(p: SnackPickState, undo: UndoValue): SnackPickState {

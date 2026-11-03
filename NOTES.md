@@ -12,7 +12,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Errors:** always `friendlyError(e, fallback)` from `src/lib/errors.ts` and `<ErrorNotice message onRetry />`. Every live hook exposes `retry`.
 - **Crew Home:** one live card per module (`crewStatus()` in `Home.tsx`). No separate Modules list any more.
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
-- **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
+- **Restroom two-phase turn (done):** called → 2 min to tap "I'm heading there" (`going_at`), then no passenger clock; crew long-visit flag at 10 min, auto-release at 15 (migration 0016).
 - **Assistance status flow:** Sent → Seen by crew (`seen_at`, set by `assist_seen` when crew open Requests) → Crew are on the way (`ack`) → Done. Passengers get a banner on any screen when a request is acknowledged.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 

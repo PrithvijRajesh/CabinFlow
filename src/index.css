@@ -414,6 +414,8 @@ button:disabled { cursor: default; }
 .queue-turn .turn-bar { background: rgba(15, 27, 45, 0.2); }
 .queue-turn .turn-bar span { background: var(--accent-ink); }
 .queue-turn .btn-ghost { border-color: rgba(15, 27, 45, 0.45); }
+/* Restroom call: amber to be noticed, but no pulsing in a dark cabin. */
+.queue-call { animation: none; }
 .turn-bar { height: 6px; margin-top: 18px; border-radius: 99px; background: rgba(255, 255, 255, 0.25); overflow: hidden; }
 .turn-bar span { display: block; height: 100%; background: #fff; transition: width 1s linear; }
 
@@ -480,6 +482,8 @@ button:disabled { cursor: default; }
 .now-sub strong { font-family: var(--mono); font-weight: 500; color: var(--ink); }
 .now-card .turn-bar { background: var(--paper-2); }
 .now-card .turn-bar span { background: var(--accent); }
+.now-long { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger), var(--shadow); }
+.now-long .now-sub strong { color: var(--danger); }
 
 .crew-list .section-label { margin: 0 0 12px; }
 .crew-empty { margin: 0; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--ink-2); font-family: var(--mono); font-size: 0.85rem; }
