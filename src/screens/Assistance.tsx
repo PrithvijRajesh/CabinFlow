@@ -31,8 +31,12 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
       <div className="hero">
         <p className="eyebrow">Assistance</p>
         <h1 className="display">How can we <em>help</em>?</h1>
-        <p className="lede">Tell the crew what you need. You'll see when someone is on the way.</p>
+        <p className="lede">For everyday needs, like a blanket or a drink. You'll see when crew are on the way.</p>
       </div>
+
+      <p className="notice notice-row assist-call">
+        <span><strong>Emergency?</strong> Press your call button. It reaches the crew straight away.</span>
+      </p>
 
       {assist.error && <ErrorNotice message={assist.error} onRetry={assist.retry} />}
 
@@ -87,8 +91,6 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
           </div>
         </>
       )}
-
-      <p className="footnote">Your call button still works as usual.</p>
     </section>
   )
 }
@@ -117,7 +119,7 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
       )}
 
       {info.urgent && (
-        <p className="queue-sub"><strong>For an emergency, press your call button too.</strong> This request is marked urgent for the crew.</p>
+        <p className="queue-sub">Crew will see this as <strong>urgent</strong> and come to you first. If you need help right now, press your call button.</p>
       )}
 
       {needsNote && (

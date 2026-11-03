@@ -526,6 +526,7 @@ button:disabled { cursor: default; }
 .btn-quiet { min-height: 44px; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; padding-inline: 10px; }
 
 /* ---------- Passenger assistance ---------- */
+.assist-call { max-width: 880px; margin-bottom: 28px; border-left: 4px solid var(--sky); }
 .assist-mine { margin-bottom: 28px; max-width: 880px; }
 .assist-mine .section-label, .assist > .section-label { margin: 0 0 12px; }
 .assist-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

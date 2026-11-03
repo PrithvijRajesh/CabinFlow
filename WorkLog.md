@@ -130,3 +130,4 @@
 - **2026-11-02** — Passenger theme switched to the "Night Cabin" palette (navy, cabin blue, amber, teal); fonts now Lexend (headings) + Atkinson Hyperlegible Next (body).
 - **2026-11-02** — Assistance audited through a first-time passenger's eyes (25 pitfalls). #19 fixed: a "Crew are on the way" banner shows on any screen when crew accept a request.
 - **2026-11-02** — #17/#18 fixed: requests now go Sent → Seen by crew → Crew are on the way → Done. "Seen" is set when crew open their Requests screen (migration 0014, `assist_seen`). Passengers see what to expect at each step (usual wait, seatbelt-sign delays). Pill wording fixed to "Crew are on the way".
+- **2026-11-02** — #3/#12 fixed: Assistance says up front it's for everyday needs, with an "Emergency? Press your call button" note; the urgent card no longer implies the app isn't enough. Old footnote removed.

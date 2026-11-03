@@ -519,3 +519,8 @@
   - `CrewRequests` calls `assist.markSeen()` from an effect whenever there are unseen new requests, so opening the screen (or a request arriving while it's open) marks them seen. `markSeen` is a stable `useCallback`, so the effect doesn't fire every render.
   - The passenger's realtime subscription picks up the update; `statusOf()` in `Assistance.tsx` shows "Seen by crew" for open requests with `seen_at`. The Home tile says "seen by crew" too.
 - **Why it matters.** "Sent" alone left passengers wondering whether anyone got it, and the wait felt endless with no explanation. Knowing a person has seen it, and why it might take a while, keeps them calm and in their seat instead of pressing the call button and sending a duplicate.
+
+### Assistance: when to use the call button
+- **What it does.** The intro now reads "For everyday needs, like a blanket or a drink", followed by a calm note: "**Emergency?** Press your call button. It reaches the crew straight away." The "Feeling unwell" card says crew will see it as urgent and come first, and to press the call button if help is needed right now.
+- **How it's implemented.** Copy changes in `Assistance.tsx`, using the existing `.notice` style plus `.assist-call` (blue left border, not red, so it informs without alarming). The bottom footnote "Your call button still works as usual" is gone.
+- **Why it matters.** First-time passengers didn't know which to use, and "press your call button too" made the app sound unreliable. A clear split (app for everyday, call button for emergencies) builds trust and stops crew getting both a request and a call for the same thing.
