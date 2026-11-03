@@ -22,6 +22,7 @@ import { UndoContext, useUndoQueue, type UndoValue } from '../context/useUndo'
 import UndoToast from './UndoToast'
 import FlightStrip from './FlightStrip'
 import Icon from './Icon'
+import { ASSIST_TYPES } from '../services/assistance'
 
 interface Props {
   session: Session
@@ -49,6 +50,15 @@ export default function AppShell({ session, onSignOut }: Props) {
     requestAnimationFrame(() => document.getElementById('flight-phase')?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }
   const urgent = crewAssist.urgentOpen[0]
+  // Passenger: banner when crew accept a request, until it's been seen on the Assistance screen.
+  const [seenAck, setSeenAck] = useState<Set<string>>(new Set())
+  const onTheWay = assist.active.find((r) => r.status === 'ack' && !seenAck.has(r.id))
+  const go = (id: string) => {
+    if (id === 'assistance' || active === 'assistance') {
+      setSeenAck(new Set(assist.active.filter((r) => r.status === 'ack').map((r) => r.id)))
+    }
+    setActive(id)
+  }
   const nav = [{ id: 'home', label: 'Home', icon: 'home' as const }, ...features]
   // Crew screens work in every phase; passenger features follow the phase rules.
   const isOff = (id: string) => {
@@ -73,7 +83,7 @@ export default function AppShell({ session, onSignOut }: Props) {
               <button
                 key={item.id}
                 className={`rail-item${active === item.id ? ' active' : ''}${isOff(item.id) ? ' is-off' : ''}`}
-                onClick={() => setActive(item.id)}
+                onClick={() => go(item.id)}
                 aria-current={active === item.id ? 'page' : undefined}
               >
                 <Icon name={item.icon} size={22} />
@@ -100,13 +110,19 @@ export default function AppShell({ session, onSignOut }: Props) {
           </header>
 
           {restroom.isMyTurn && !isOff('bathroom') && active !== 'bathroom' && (
-            <button className="turn-banner" onClick={() => setActive('bathroom')}>
+            <button className="turn-banner" onClick={() => go('bathroom')}>
               <Icon name="restroom" size={20} /> It's your turn for the restroom. <strong>Open</strong>
             </button>
           )}
 
+          {onTheWay && active !== 'assistance' && (
+            <button className="turn-banner" onClick={() => go('assistance')}>
+              <Icon name="bell" size={20} /> Crew are on the way: {ASSIST_TYPES.find((t) => t.type === onTheWay.type)?.label}. <strong>View</strong>
+            </button>
+          )}
+
           {urgent && active !== 'assistance' && (
-            <button className="turn-banner" onClick={() => setActive('assistance')}>
+            <button className="turn-banner" onClick={() => go('assistance')}>
               <Icon name="bell" size={20} /> Urgent: {urgent.seat} is feeling unwell. <strong>Open</strong>
             </button>
           )}
@@ -131,7 +147,7 @@ export default function AppShell({ session, onSignOut }: Props) {
             ) : current ? (
               <ComingSoon feature={current} role={session.role} />
             ) : (
-              <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} assist={assist} crewAssist={crewAssist} onOpen={setActive} />
+              <Home session={session} features={features} restroom={restroom} cart={cart} picks={picks} orders={orders} assist={assist} crewAssist={crewAssist} onOpen={go} />
             )}
           </main>
           <UndoToast />

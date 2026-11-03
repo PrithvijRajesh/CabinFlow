@@ -504,3 +504,10 @@
 ### Why it matters
 - Crew glance at Home between tasks. A card that says "1 urgent" in red is a reason to act; "Standby" was noise.
 - Seatback screens are read from about an arm's length away. Labels at 11px and text faded to 45% are hard to read there, especially for older passengers.
+
+## Refinement — MVP demo polish
+
+### Assistance: "Crew are on the way" banner
+- **What it does.** When crew tap "On my way", the passenger sees a banner at the top of every screen: "Crew are on the way: Blanket or pillow. View". Tapping it opens Assistance.
+- **How it's implemented.** `AppShell` finds the first acknowledged request the passenger hasn't seen yet. Navigation goes through `go(id)`; entering or leaving the Assistance screen marks current acknowledged requests as seen, so the banner doesn't come back for them. No backend change, it uses the live `useAssistance` data AppShell already has.
+- **Why it matters.** Before, "on the way" only showed on the Assistance screen or the Home tile. A passenger watching a movie never saw it, so they kept wondering if the request went through and often pressed the call button too, creating a duplicate for crew.

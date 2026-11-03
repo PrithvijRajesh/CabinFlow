@@ -31,4 +31,6 @@ A application that connects to seat back screens to help improve airline operati
 
 ## Current Focus
 
-Fix the issues the user noticed during testing (list to come from the user).
+MVP demo polish. Going feature by feature through the eyes of a first-time passenger, fixing pitfalls one at a time. Commit and push after each fix.
+
+- Now: Assistance. Done: #19 (crew-on-the-way banner). Next: #17/#18 (seen by crew + wait-time expectations).

@@ -128,3 +128,4 @@
 ## Refinement — MVP demo polish (first-time passenger pass)
 
 - **2026-11-02** — Passenger theme switched to the "Night Cabin" palette (navy, cabin blue, amber, teal); fonts now Lexend (headings) + Atkinson Hyperlegible Next (body).
+- **2026-11-02** — Assistance audited through a first-time passenger's eyes (25 pitfalls). #19 fixed: a "Crew are on the way" banner shows on any screen when crew accept a request.
