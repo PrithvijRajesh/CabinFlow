@@ -147,3 +147,7 @@
 - **2026-11-03** — #7 fixed: each turbulence leg shows rough timing ("Now", "In about 40 min", "Passed"; before takeoff "At takeoff" / "About 1 h in"), and "Right now" adds the next bumpy stretch, e.g. "Next: light bumps in about 40 min".
 - **2026-11-03** — #1/#2/#15 fixed: flight times use the passenger's own clock format (2:50 PM vs 14:50) at the right airport's zone and are labeled ("SFO time" / "DFW time"); Flight Info shows destination local time prominently with the time difference ("2 h ahead of SFO"). Applied to Flight Info, Home, the flight strip and the welcome screen.
 - **2026-11-03** — #3, #11, #14 fixed: remaining time reads "About 2h 10m" / "estimated" with a note that times can shift; "use the restroom" in the turbulence tip opens the restroom line; °F shows first on US locales. Flight Info shortlist done; pass committed.
+
+## Demo prep
+
+- **2026-11-03** — README added. Design slides (Design Foundations for AI Builders) applied: DESIGN.md written (people, vibe, tokens, semantic colors, 60-30-10, contrast, type, components, dos/don'ts, what makes it unique); CLAUDE.md rule 10 points the agent at it. All hardcoded colors in `index.css` replaced by tokens (`--on-sky`, `--caution` added; tints via `color-mix`). Every text/background pair checked at WCAG AA.

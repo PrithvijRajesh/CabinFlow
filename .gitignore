@@ -18,6 +18,7 @@ dist-ssr
 # Not app code: research and course material stay local
 research/
 Product Proposal.pdf
+Design*Foundations*.pdf
 
 # Supabase CLI local state
 supabase/.temp/

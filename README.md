@@ -21,6 +21,8 @@ A seatback module that keeps passengers in their seats and crew out of the aisle
 
 ## Design
 
+Full rules in [`DESIGN.md`](DESIGN.md).
+
 - **Palette "Night Cabin":** navy base for low glare in dark cabins, cabin blue panels, amber for "act now", teal for "all good". The crew side uses a dark ops-console theme.
 - **Fonts:** Lexend for headings and Atkinson Hyperlegible Next for body text, chosen for legibility on low-resolution screens (seat numbers like "14I"). IBM Plex Mono for numbers.
 - **Vibe:** calm, reassuring, effortless.
@@ -65,6 +67,7 @@ Checks: `npm run build` and `npm run lint` (oxlint).
 ## Project docs
 
 - `prd.md`: product requirements and scope
+- `DESIGN.md`: design system (palette, type, components, dos and don'ts)
 - `CLAUDE.md`: working rules and current focus
 - `WorkLog.md`: what was done and when
 - `FeatureAnalysis.md`: how each feature works and why it matters

@@ -28,6 +28,7 @@ A application that connects to seat back screens to help improve airline operati
 7. Before adding a service confirm with me and explain why it is needed
 8. Create 2 md files if they do not exist yet, one called WorkLog and one called FeatureAnalysis, after each feature is implemented you will add to each md file, the WorkLog will just go over when the feature was completed and updated as feature milestones are completed saying what the milestone was, the FeatureAnalysis will explain the feature so I understand how it was implemented and why it is important.
 9. Read NOTES.md at the start of each session and update it after each feature.
+10. Read DESIGN.md before touching any UI. Never hardcode colors: use the tokens in `src/index.css` (`color-mix` for tints). Reuse the existing components listed in DESIGN.md before making new ones. If a UI change drifts from DESIGN.md, add a rule there instead of only fixing it.
 
 ## Current Focus
 
@@ -37,4 +38,5 @@ MVP demo polish. Going feature by feature through the eyes of a first-time passe
 - Done: Restroom pass (two-phase turn, undo on I'm back, honest pause, look-away copy, discreet banner).
 - Done: Snacks & Drinks pass (autosave, served state, free/no-need-to-ask, No thanks, allergen tags, cart-open/ran-out banners).
 - Done: Flight Info pass (reassuring turbulence, leg timing, clear times + time difference, estimates, restroom link, °F first).
-- Next: whatever the user picks (crew-side pass, a second passenger pass, or demo prep).
+- Done: DESIGN.md written from the design-foundations session; all colors moved to tokens; contrast checked (all AA).
+- Now: MVP demo on 11/3. Live on Vercel. Demo script is in research/demo-script.md (local only, gitignored).
