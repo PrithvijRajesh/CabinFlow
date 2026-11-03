@@ -11,6 +11,7 @@ import type { CrewPicks } from '../hooks/useCrewPicks'
 import type { Assistance } from '../hooks/useAssistance'
 import type { CrewAssistance } from '../hooks/useCrewAssistance'
 import { passengerLabel } from '../services/assistance'
+import { arriveClock } from '../data/flight'
 
 interface Props {
   session: Session
@@ -75,7 +76,7 @@ function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { sea
   return (
     <section className="home">
       <div className="hero">
-        <p className="eyebrow">{flight.flightNumber}{remaining && ` · ${remaining === 'Landed' ? 'landed' : `${remaining} to go`}`}</p>
+        <p className="eyebrow">{flight.flightNumber}{remaining && ` · ${remaining === 'Landed' ? 'landed' : `about ${remaining} to go`}`}</p>
         <h1 className="display">
           {greeting()}, <em>{seat}</em>.
         </h1>
@@ -141,7 +142,7 @@ function CrewHome({ features, restroom, cart, orders, requests, onOpen }: { feat
       <div className="hero">
         <p className="eyebrow">Cabin overview</p>
         <h1 className="display">{flight.flightNumber} <span className="dim">{flight.origin.code} → {flight.destination.code}</span></h1>
-        <p className="lede">{remaining === 'Landed' ? 'Landed' : `${remaining} remaining`} · arriving {flight.arrivalTime}</p>
+        <p className="lede">{remaining === 'Landed' ? 'Landed' : `${remaining} remaining`} · arriving {arriveClock(flight)} {flight.destination.code} time</p>
       </div>
 
       <FlightSetup />

@@ -14,6 +14,10 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Restroom two-phase turn (done):** called → 2 min to tap "I'm heading there" (`going_at`), then no passenger clock; crew long-visit flag at 10 min, auto-release at 15 (migration 0016).
 - **Assistance status flow:** Sent → Seen by crew (`seen_at`, set by `assist_seen` when crew open Requests) → Crew are on the way (`ack`) → Done. Passengers get a banner on any screen when a request is acknowledged.
+- **MVP demo polish (2026-11-02/03):** first-time-passenger pass done for Assistance, Restroom, Snacks, Flight Info (one commit each). Migrations 0014–0018 added (assist `seen_at`, notes on any type, restroom `going_at`, snack `declined`, cart `tags`); all have been run.
+- **Passenger banners live in `AppShell`:** your restroom turn, crew on the way, cart open, picked item ran out. Each clears via `go(id)` when its screen is opened or left.
+- **Snack picks autosave** (0.7s debounce in `Snacks.tsx`, flushed on unmount). `Undoable.onUndo` restores screen state on Undo.
+- **Times:** use `departClock` / `arriveClock` / `destinationNow` / `timeDifference` from `src/data/flight.ts`, never the raw `departureTime` / `arrivalTime` strings.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 
 ## Key decisions

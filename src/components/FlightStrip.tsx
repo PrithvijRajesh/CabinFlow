@@ -1,5 +1,6 @@
 import { useFlight } from '../context/useFlight'
 import Icon from './Icon'
+import { arriveClock, departClock } from '../data/flight'
 
 // Route line with the plane positioned at the current flight progress.
 export default function FlightStrip({ compact = false }: { compact?: boolean }) {
@@ -10,7 +11,7 @@ export default function FlightStrip({ compact = false }: { compact?: boolean }) 
     <div className={compact ? 'strip strip-compact' : 'strip'}>
       <div className="strip-end">
         <span className="strip-code">{flight.origin.code}</span>
-        {!compact && <span className="strip-time">{flight.departureTime}</span>}
+        {!compact && <span className="strip-time">{departClock(flight)}</span>}
       </div>
       <div className="strip-track" role="img" aria-label={`Flight ${pct}% complete`}>
         <div className="strip-done" style={{ width: `${pct}%` }} />
@@ -20,7 +21,7 @@ export default function FlightStrip({ compact = false }: { compact?: boolean }) 
       </div>
       <div className="strip-end strip-end-right">
         <span className="strip-code">{flight.destination.code}</span>
-        {!compact && <span className="strip-time">{flight.arrivalTime}</span>}
+        {!compact && <span className="strip-time">{arriveClock(flight)}</span>}
       </div>
     </div>
   )

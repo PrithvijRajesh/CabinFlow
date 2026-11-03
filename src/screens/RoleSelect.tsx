@@ -1,5 +1,5 @@
 import { useFlight } from '../context/useFlight'
-import { statusLabel } from '../data/flight'
+import { arriveClock, departClock, statusLabel } from '../data/flight'
 import Icon from '../components/Icon'
 import type { Role } from '../types'
 
@@ -37,8 +37,8 @@ export default function RoleSelect({ onSelect }: Props) {
 
           <dl className="pass-fields">
             <div><dt>Flight</dt><dd>{flight.flightNumber}</dd></div>
-            <div><dt>{departed ? 'Departed' : 'Departs'}</dt><dd>{flight.departureTime || '—'}</dd></div>
-            <div><dt>Arrives</dt><dd>{flight.arrivalTime || '—'}</dd></div>
+            <div><dt>{departed ? 'Departed' : 'Departs'}</dt><dd>{departClock(flight) || '—'}</dd></div>
+            <div><dt>Arrives</dt><dd>{arriveClock(flight) || '—'}</dd></div>
             <div><dt>Status</dt><dd className={`status status-${status.tone}`}>{status.label}</dd></div>
           </dl>
 

@@ -161,7 +161,7 @@ export default function AppShell({ session, onSignOut }: Props) {
             ) : session.role === 'passenger' && active === 'assistance' ? (
               <Assistance assist={assist} />
             ) : session.role === 'passenger' && active === 'flight' ? (
-              <FlightInfo />
+              <FlightInfo onOpen={go} />
             ) : session.role === 'crew' && active === 'bathroom' ? (
               <CrewRestroom onChangePhase={changePhase} />
             ) : session.role === 'crew' && active === 'snacks' ? (

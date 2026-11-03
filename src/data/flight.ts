@@ -43,6 +43,45 @@ export function flightProgress(flight: FlightInfo, now = Date.now()) {
   return { progress, remaining }
 }
 
+// A time on that airport's clock, in the passenger's own format ("2:50 PM"
+// or "14:50"). Falls back to the stored HH:MM when the zone is unknown,
+// since formatting without it would show the seatback's zone instead.
+function clockAt(utc: string | null | undefined, timeZone: string | null | undefined, fallback: string, at?: number) {
+  if (!timeZone || (!utc && at === undefined)) return fallback
+  try {
+    return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', timeZone }).format(at ?? new Date(utc!))
+  } catch {
+    return fallback
+  }
+}
+export const departClock = (f: FlightInfo) => clockAt(f.departureUtc, f.origin.timeZone, f.departureTime)
+export const arriveClock = (f: FlightInfo) => clockAt(f.arrivalUtc, f.destination.timeZone, f.arrivalTime)
+// Current time at the destination, or null when its zone is unknown.
+export const destinationNow = (f: FlightInfo, now = Date.now()) => clockAt(null, f.destination.timeZone, '', now) || null
+
+// UTC offset in minutes for a zone, e.g. -300 for New York in winter.
+function offsetMinutes(timeZone: string, now: number) {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+    .formatToParts(now).find((p) => p.type === 'timeZoneName')?.value ?? ''
+  const m = name.match(/GMT([+-])(\d{2}):(\d{2})/)
+  return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0
+}
+
+// "2 h ahead", "3 h behind", "same time", or null when a zone is unknown.
+export function timeDifference(f: FlightInfo, now = Date.now()) {
+  const from = f.origin.timeZone
+  const to = f.destination.timeZone
+  if (!from || !to) return null
+  try {
+    const diff = offsetMinutes(to, now) - offsetMinutes(from, now)
+    if (diff === 0) return 'same time'
+    const h = Math.abs(diff) / 60
+    return `${Number.isInteger(h) ? h : h.toFixed(1)} h ${diff > 0 ? 'ahead' : 'behind'}`
+  } catch {
+    return null
+  }
+}
+
 // Display label and tone for AeroDataBox statuses.
 export function statusLabel(status: string): { label: string; tone: 'ok' | 'warn' | 'bad' | 'neutral' } {
   switch (status) {

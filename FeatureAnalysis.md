@@ -606,3 +606,29 @@
   Tapping opens Snacks; opening or leaving Snacks clears them, and a new ran-out item shows a fresh banner.
 - **How it's implemented.** In `AppShell`, from the `cart` and `picks` data it already owns. `seenCart` and `seenOut` are updated in `go()`, the same pattern as the assistance "on the way" banner. No backend change.
 - **Why it matters.** "Check back soon" relied on passengers remembering to come back, and an item running out was only visible inside Snacks. Both used to surface at the cart, the worst moment. Now the passenger hears about it while there's still time to pick, and crew don't have to ask or apologize row by row.
+
+### Flight Info: reassuring turbulence wording
+- **What it does.** The turbulence card now always ends with a calm, teal-edged note: "**Turbulence is a normal part of flying.** Aircraft are built to handle far more than you'll feel. Keep your seat belt fastened whenever you're seated." Bumpy and light tips say the bumps are normal. "No turbulence reported" now adds "Conditions can change", so it isn't read as a promise.
+- **How it's implemented.** Copy in the `RIDE` table and `expected()` in `FlightInfo.tsx`, plus `.ride-calm` (existing `.notice` with a teal border). No data changes.
+- **Why it matters.** The outlook is accurate, but showing nervous flyers a red "Bumpy" bar ahead with no context raises fear, the opposite of CabinFlow's "calm, reassuring" goal. A plain, factual reassurance keeps the information useful without alarming anyone, and "conditions can change" stops a clear forecast from feeling like a broken promise.
+
+### Flight Info: when the bumps are
+- **What it does.** Under each turbulence leg is a rough time: in flight "Passed", "Now" or "In about 40 min"; before takeoff "At takeoff" or "About 1 h 20 min in". The "Right now" line adds the next stretch with bumps: "Next: light bumps in about 40 min."
+- **How it's implemented.** `legTimes()` in `FlightInfo.tsx` splits the scheduled departure → arrival into the same five equal legs the weather function uses, and `when()` / `nextBumps()` turn leg starts into text. `duration()` rounds to 5 minutes so it reads as an estimate. It refreshes with the flight context's one-minute tick. No backend change.
+- **Why it matters.** "Bumps in Late cruise" doesn't mean anything to a passenger. "In about 40 min" tells them when to get up, use the restroom, or finish a hot drink, and it removes the dread of not knowing if the bumps are about to start.
+
+### Flight Info: clear times and time difference
+- **What it does.**
+  - Departure and arrival show in the passenger's own format (12-hour "2:50 PM" on a US locale, 24-hour elsewhere), each labeled with its airport: "9:15 AM · SFO time", "2:50 PM · DFW time".
+  - The destination card shows "**1:05 PM** local time · 2 h ahead of SFO", and the intro adds "Their clock is 2 h ahead of SFO."
+  - The same formatting is used on Home, the flight strip and the welcome screen.
+- **How it's implemented.** New helpers in `src/data/flight.ts`: `departClock` / `arriveClock` format the UTC times with `Intl.DateTimeFormat` in the airport's zone and the device's locale; `destinationNow` gives the current destination time; `timeDifference` compares the two zones' UTC offsets (via `timeZoneName: 'longOffset'`, handles half-hour zones like India). When a zone is unknown they fall back to the stored HH:MM rather than silently using the seatback's zone.
+- **Why it matters.** "14:50" with no zone left passengers guessing whose clock it was, and many read 24-hour time slowly. Knowing the destination is 2 hours ahead helps with sleep, connections and calling whoever is picking them up.
+
+### Flight Info: estimates, restroom shortcut, °F first
+- **What it does.**
+  - Time left reads "About 2h 10m to go" with an "estimated" label, and a note: "Times come from the schedule and can shift with delays or air traffic. The crew will announce changes." Passenger Home says "about … to go" too.
+  - When nothing is reported right now, "use the restroom" in the tip is a link that opens the restroom line.
+  - Destination temperature shows °F first on US locales (°C first elsewhere).
+- **How it's implemented.** Copy in `FlightInfo.tsx` and `Home.tsx`. `FlightInfo` now takes `onOpen` from `AppShell` (the same `go()` the banners use). `FAHRENHEIT_FIRST` checks the device locale's region with `Intl.Locale(...).maximize()`.
+- **Why it matters.** Progress is worked out from the schedule, so during a hold "10 min to go" was wrong and made the whole screen look unreliable; calling it an estimate keeps trust. The restroom link turns advice into one tap at the best moment to go, and US passengers no longer have to convert °C in their heads.

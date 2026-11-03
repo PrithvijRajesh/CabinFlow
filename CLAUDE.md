@@ -36,4 +36,5 @@ MVP demo polish. Going feature by feature through the eyes of a first-time passe
 - Done: Assistance pass (committed 7c6c028).
 - Done: Restroom pass (two-phase turn, undo on I'm back, honest pause, look-away copy, discreet banner).
 - Done: Snacks & Drinks pass (autosave, served state, free/no-need-to-ask, No thanks, allergen tags, cart-open/ran-out banners).
-- Now: Flight Info.
+- Done: Flight Info pass (reassuring turbulence, leg timing, clear times + time difference, estimates, restroom link, °F first).
+- Next: whatever the user picks (crew-side pass, a second passenger pass, or demo prep).
