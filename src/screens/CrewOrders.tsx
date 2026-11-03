@@ -33,6 +33,9 @@ function loadUp(picks: CrewPick[], items: CartItem[]): Total[] {
 export default function CrewOrders({ cart, orders }: { cart: Cart; orders: CrewPicks }) {
   // A pick whose items were all removed from the cart is no longer an order.
   const placed = orders.picks.filter((p) => p.drink_id || p.snack_id)
+  // Seats that said "No thanks", front to back, so crew can skip them.
+  const declined = orders.picks.filter((p) => p.declined).map((p) => p.seat)
+    .sort((a, b) => parseInt(a) - parseInt(b) || a.localeCompare(b))
   const toServe = placed.filter((p) => !p.served_at)
   const totals = loadUp(toServe, cart.items)
   const drinks = totals.filter((t) => t.item.kind === 'drink')
@@ -55,7 +58,10 @@ export default function CrewOrders({ cart, orders }: { cart: Cart; orders: CrewP
       {!orders.ready || !cart.ready ? (
         <p className="crew-empty">Loading orders…</p>
       ) : placed.length === 0 ? (
-        <p className="crew-empty">No picks yet. They appear here as passengers choose.</p>
+        <>
+          <p className="crew-empty">No picks yet. They appear here as passengers choose.</p>
+          {declined.length > 0 && <p className="crew-empty">No thanks · {declined.join(', ')}</p>}
+        </>
       ) : (
         <div className="cart-grid">
           <div className="crew-list">
@@ -77,6 +83,7 @@ export default function CrewOrders({ cart, orders }: { cart: Cart; orders: CrewP
 
           <div className="crew-list">
             <p className="eyebrow section-label">By seat · {placed.length}</p>
+            {declined.length > 0 && <p className="crew-empty">No thanks, skip · {declined.join(', ')}</p>}
             <ul className="crew-rows">
               {placed.map((p) => (
                 <li key={p.seat} className={p.served_at ? 'order-row is-served' : 'order-row'}>

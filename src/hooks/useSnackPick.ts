@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CartItem } from '../services/cart'
-import { fetchMyPick, savePick, subscribeMyPick, type SnackPick } from '../services/snackPicks'
+import { declinePick, fetchMyPick, savePick, subscribeMyPick, type MyPick, type SnackPick } from '../services/snackPicks'
 import { supabase } from '../lib/supabase'
 import { NO_BACKEND, friendlyError } from '../lib/errors'
 
 export interface SnackPickState {
   ready: boolean
   error: string | null
-  pick: SnackPick | null // what's saved for this seat
+  pick: MyPick | null // what's saved for this seat
   busy: boolean
   save: (pick: SnackPick) => Promise<boolean> // true when saved
+  decline: () => Promise<boolean> // "No thanks"
   retry: () => Promise<void> // reload after an error
 }
 
 // This seat's saved drink and snack picks, kept live. `seat` is null for crew.
 export function useSnackPick(flightId: string, seat: string | null): SnackPickState {
-  const [pick, setPick] = useState<SnackPick | null>(null)
+  const [pick, setPick] = useState<MyPick | null>(null)
   const [ready, setReady] = useState(!supabase || !seat)
   const [error, setError] = useState<string | null>(supabase ? null : NO_BACKEND)
   const [busy, setBusy] = useState(false)
@@ -40,11 +41,11 @@ export function useSnackPick(flightId: string, seat: string | null): SnackPickSt
     return subscribeMyPick(flightId, seat, () => void refresh())
   }, [flightId, seat, refresh])
 
-  const save = useCallback(async (next: SnackPick) => {
+  const run = useCallback(async (action: (seat: string) => Promise<void>) => {
     if (!seat) return false
     setBusy(true)
     try {
-      await savePick(flightId, seat, next)
+      await action(seat)
       await refresh()
       return true
     } catch (e) {
@@ -53,9 +54,12 @@ export function useSnackPick(flightId: string, seat: string | null): SnackPickSt
     } finally {
       setBusy(false)
     }
-  }, [flightId, seat, refresh])
+  }, [seat, refresh])
 
-  return { ready, error, pick, busy, save, retry: refresh }
+  const save = useCallback((next: SnackPick) => run((s) => savePick(flightId, s, next)), [flightId, run])
+  const decline = useCallback(() => run((s) => declinePick(flightId, s)), [flightId, run])
+
+  return { ready, error, pick, busy, save, decline, retry: refresh }
 }
 
 // "Coffee · cream · 1 sugar + Pretzels", or null when nothing is picked.

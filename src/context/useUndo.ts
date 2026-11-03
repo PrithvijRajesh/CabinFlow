@@ -8,6 +8,7 @@ export interface Undoable {
   key: string // what it hides while pending, e.g. `spot:<id>`
   message: string
   commit: () => Promise<unknown> | void
+  onUndo?: () => void // restore anything the screen changed up front
 }
 
 export interface Toast {
@@ -80,7 +81,9 @@ export function useUndoQueue(): UndoValue {
   }, [clear])
 
   const undo = useCallback(() => {
-    if (pending.current) cancel(pending.current.key)
+    if (!pending.current) return
+    pending.current.onUndo?.()
+    cancel(pending.current.key)
   }, [cancel])
 
   // Leaving the app shell (sign out) still sends what's pending.

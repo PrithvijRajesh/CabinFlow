@@ -11,10 +11,17 @@ export interface SnackPick {
   sugar: number | null // hot drinks only, 0–3
 }
 
+// Passenger view: their own pick plus whether crew have handed it over.
+export interface MyPick extends SnackPick {
+  served_at: string | null
+  declined: boolean // "No thanks": crew skip this seat
+}
+
 // Crew view: includes the seat and whether it has been served.
 export interface CrewPick extends SnackPick {
   seat: string
   served_at: string | null
+  declined: boolean
 }
 
 function client() {
@@ -23,10 +30,10 @@ function client() {
 }
 
 // This seat's picks only. Passengers never load other seats.
-export async function fetchMyPick(flightId: string, seat: string): Promise<SnackPick | null> {
+export async function fetchMyPick(flightId: string, seat: string): Promise<MyPick | null> {
   const { data, error } = await client()
     .from('snack_picks')
-    .select('drink_id, snack_id, ice, cream, sugar')
+    .select('drink_id, snack_id, ice, cream, sugar, served_at, declined')
     .eq('flight_id', flightId)
     .eq('seat', seat)
     .maybeSingle()
@@ -38,10 +45,15 @@ export async function fetchMyPick(flightId: string, seat: string): Promise<Snack
 export async function fetchAllPicks(flightId: string): Promise<CrewPick[]> {
   const { data, error } = await client()
     .from('snack_picks')
-    .select('seat, drink_id, snack_id, ice, cream, sugar, served_at')
+    .select('seat, drink_id, snack_id, ice, cream, sugar, served_at, declined')
     .eq('flight_id', flightId)
   if (error) throw error
   return data
+}
+
+export async function declinePick(flightId: string, seat: string) {
+  const { error } = await client().rpc('snack_pick_decline', { p_flight: flightId, p_seat: seat })
+  if (error) throw error
 }
 
 export async function setServed(flightId: string, seat: string, served: boolean) {

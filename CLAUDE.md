@@ -35,4 +35,5 @@ MVP demo polish. Going feature by feature through the eyes of a first-time passe
 
 - Done: Assistance pass (committed 7c6c028).
 - Done: Restroom pass (two-phase turn, undo on I'm back, honest pause, look-away copy, discreet banner).
-- Now: Snacks & Drinks.
+- Done: Snacks & Drinks pass (autosave, served state, free/no-need-to-ask, No thanks, allergen tags, cart-open/ran-out banners).
+- Now: Flight Info.

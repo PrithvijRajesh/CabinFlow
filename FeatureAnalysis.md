@@ -566,3 +566,43 @@
   - The passenger's line count is a plain "2" instead of "02". Crew screens keep the padded ops-console style.
 - **How it's implemented.** Copy changes in `Restroom.tsx` and `AppShell.tsx`; `.queue-call` turns off the glow animation on the call card only.
 - **Why it matters.** The line is meant to let people relax. If they think they have to stare at the screen, they don't trust it and drift into the aisle anyway. Neighbors don't need to read "restroom" over a shoulder, a pulsing card is harsh in a dark cabin, and "02" reads like a machine.
+
+### Snacks: picks save as you tap
+- **What it does.** Tapping a drink, snack or option saves it. After a short pause the bar says "Saved · the crew will bring it" and a toast confirms, e.g. "Saved: Coffee · cream · 1 sugar + Pretzels. The crew will bring it to your row." There's no Save button any more. If saving fails, the bar says "Not saved" with **Try again**. **Clear pick** still has a 5-second Undo, which now also restores the selection on screen.
+- **How it's implemented.**
+  - `Picker` in `Snacks.tsx` keeps the selection locally and schedules a save 0.7s after the last tap, so a burst like coffee → cream → 1 sugar is one write. An unmount cleanup sends a still-waiting save, so leaving the screen never loses a pick.
+  - The picker no longer remounts when the saved pick changes (that caused flicker mid-burst); it starts from the saved pick once, when the screen opens.
+  - `Undoable` gained an optional `onUndo`, called by `useUndo().undo()`, so Clear can put the old selection back.
+- **Why it matters.** The selected item was highlighted before it was saved, so passengers left thinking they'd ordered. They only found out when the cart passed without their coffee: the worst moment, in front of crew and neighbors. Saving on tap matches what people already assume happened.
+
+### Snacks: served state
+- **What it does.** When crew tap served on the Orders screen, the passenger's Snacks screen changes to **Served · Enjoy!** with what they got, and the picker is hidden. The Home tile says "Served · enjoy". For anything more, it points to Assistance → Water or a drink. If crew undo "served", the picker comes back.
+- **How it's implemented.** `fetchMyPick` now also reads `served_at` (already in the table since migration 0008, and readable by passengers) and returns a `MyPick`. `Snacks.tsx` shows the served card when `served_at` is set; `snackStatus()` in `Home.tsx` checks it too. No SQL change.
+- **Why it matters.** Before, the pick still said "Saved" and could be changed after it was handed over. The server treats a changed pick as a new order, so a passenger fiddling with it after being served would put a phantom order on the crew's list. Seeing "Served" also closes the loop, so the passenger knows the system worked.
+
+### Snacks: free, and no need to ask
+- **What it does.** A green-edged note under the intro: "**Everything here is free.** No need to ask the crew. They'll bring your pick to your seat." The saved status reads "Saved · no need to ask, it's on its way with the cart", and the Home tile description starts "Free drinks and snacks."
+- **How it's implemented.** Copy in `Snacks.tsx` and `features.ts`, plus `.snack-free` (existing `.notice` with a teal left border). The small "complimentary" eyebrow is gone on the passenger side; crew keep it.
+- **Why it matters.** "Complimentary" in small caps is easy to miss and not plain English, so people hesitate over cost or skip ordering. Without "no need to ask", passengers repeat their order to the attendant at the cart, which wastes the time the pre-order was meant to save.
+
+### Snacks: "No thanks"
+- **What it does.** With nothing picked, the bar offers **No thanks, skip my seat**. The screen then says "Got it. The crew will skip your seat when the cart comes by", with **Pick something after all** to undo it. The Home tile says "No thanks". Crew Orders shows "No thanks, skip · 12A, 14C, 20F", front to back.
+- **How it's implemented.**
+  - Migration `0017_snack_decline.sql` adds `declined` to `snack_picks` and `snack_pick_decline(flight, seat)`, which stores an empty row with `declined = true`. `snack_pick_save` now sets `declined = false`, and clearing (row deleted) removes it, so any real pick or "Pick something after all" un-declines.
+  - `useSnackPick` gained `decline()`; save and decline share one `run` helper. Declined rows have no items, so crew totals and "to serve" counts already ignore them.
+- **Why it matters.** Without it, crew still stop at every row to ask, even when half the cabin is asleep or not hungry. Knowing which seats to skip is exactly the kind of cabin movement CabinFlow is meant to cut, and passengers who want to sleep aren't woken.
+
+### Snacks: allergen and diet tags
+- **What it does.** Each snack can carry tags: **Contains nuts**, **Contains dairy** (shown in amber as allergens), **Gluten-free** and **Vegan**. Passengers see them on the snack buttons, with a note under the snacks: "Allergy? Labels are a guide. Check the packet or ask the crew before eating." Crew toggle tags on each snack in the cart screen; "Load standard cart" fills sensible defaults (Pretzels vegan, Cookies dairy, Crackers vegan, Trail mix nuts + vegan).
+- **How it's implemented.**
+  - Migration `0018_cart_tags.sql` adds `cart_items.tags text[]` (checked against the four allowed values), a crew-only `cart_set_tags`, and `cart_default_tags`, which `cart_load_standard` calls and which also backfills existing untagged snacks.
+  - `ITEM_TAGS` in `services/cart.ts` holds labels and which are allergens; `useCart` gained `setTags`. `TagToggles` in `CrewCart.tsx` and the choice buttons in `Snacks.tsx` both read it.
+- **Why it matters.** A parent with a nut-allergic child had no way to know what was in "Trail mix" without stopping the crew. Tags answer the common question up front. The note matters too: the app shouldn't claim to be the final word on an allergy, since what's actually loaded can differ.
+
+### Snacks: banners for cart open and ran out
+- **What it does.** On any passenger screen:
+  - "**Free snacks and drinks are open.** Pick yours" when the cart has items and the passenger hasn't picked (or said no thanks).
+  - "**Coffee just ran out.** Pick another" when crew mark a picked item out before it's served. This one wins if both apply.
+  Tapping opens Snacks; opening or leaving Snacks clears them, and a new ran-out item shows a fresh banner.
+- **How it's implemented.** In `AppShell`, from the `cart` and `picks` data it already owns. `seenCart` and `seenOut` are updated in `go()`, the same pattern as the assistance "on the way" banner. No backend change.
+- **Why it matters.** "Check back soon" relied on passengers remembering to come back, and an item running out was only visible inside Snacks. Both used to surface at the cart, the worst moment. Now the passenger hears about it while there's still time to pick, and crew don't have to ask or apologize row by row.

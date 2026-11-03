@@ -53,9 +53,21 @@ export default function AppShell({ session, onSignOut }: Props) {
   // Passenger: banner when crew accept a request, until it's been seen on the Assistance screen.
   const [seenAck, setSeenAck] = useState<Set<string>>(new Set())
   const onTheWay = assist.active.find((r) => r.status === 'ack' && !seenAck.has(r.id))
+  // Passenger snack banners: the cart is open and nothing is picked yet, or a
+  // picked item ran out. Each clears once the Snacks screen has been opened.
+  const [seenCart, setSeenCart] = useState(false)
+  const [seenOut, setSeenOut] = useState<Set<string>>(new Set())
+  const mine = picks.pick && !picks.pick.served_at ? [picks.pick.drink_id, picks.pick.snack_id] : []
+  const outItems = cart.items.filter((i) => mine.includes(i.id) && !i.in_stock)
+  const ranOut = outItems.find((i) => !seenOut.has(i.id))
+  const cartOpen = !!seat && !seenCart && cart.ready && picks.ready && !picks.pick && cart.items.some((i) => i.in_stock)
   const go = (id: string) => {
     if (id === 'assistance' || active === 'assistance') {
       setSeenAck(new Set(assist.active.filter((r) => r.status === 'ack').map((r) => r.id)))
+    }
+    if (id === 'snacks' || active === 'snacks') {
+      setSeenCart(true)
+      setSeenOut(new Set(outItems.map((i) => i.id)))
     }
     setActive(id)
   }
@@ -112,6 +124,18 @@ export default function AppShell({ session, onSignOut }: Props) {
           {restroom.isMyTurn && !restroom.isGoing && !isOff('bathroom') && active !== 'bathroom' && (
             <button className="turn-banner" onClick={() => go('bathroom')}>
               <Icon name="restroom" size={20} /> Your turn is ready. <strong>Open</strong>
+            </button>
+          )}
+
+          {ranOut && !isOff('snacks') && active !== 'snacks' && (
+            <button className="turn-banner" onClick={() => go('snacks')}>
+              <Icon name="cup" size={20} /> {ranOut.name} just ran out. <strong>Pick another</strong>
+            </button>
+          )}
+
+          {cartOpen && !ranOut && !isOff('snacks') && active !== 'snacks' && (
+            <button className="turn-banner" onClick={() => go('snacks')}>
+              <Icon name="cup" size={20} /> Free snacks and drinks are open. <strong>Pick yours</strong>
             </button>
           )}
 

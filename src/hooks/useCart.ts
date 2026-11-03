@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  addItem, fetchCart, loadStandardCart, removeItem, setInStock, subscribeCart,
-  type CartItem, type ItemKind, type Serve,
+  addItem, fetchCart, loadStandardCart, removeItem, setInStock, setTags, subscribeCart,
+  type CartItem, type ItemKind, type ItemTag, type Serve,
 } from '../services/cart'
 import { supabase } from '../lib/supabase'
 import { NO_BACKEND, friendlyError } from '../lib/errors'
@@ -13,6 +13,7 @@ export interface Cart {
   busy: boolean
   add: (name: string, kind: ItemKind, serve: Serve | null) => Promise<void>
   setStock: (id: string, inStock: boolean) => Promise<void>
+  setTags: (id: string, tags: ItemTag[]) => Promise<void>
   remove: (id: string) => Promise<void>
   loadStandard: () => Promise<void>
   retry: () => Promise<void> // reload after an error
@@ -65,6 +66,7 @@ export function useCart(flightId: string): Cart {
     retry: refresh,
     add: (name, kind, serve) => run(() => addItem(flightId, name, kind, serve)),
     setStock: (id, inStock) => run(() => setInStock(flightId, id, inStock)),
+    setTags: (id, tags) => run(() => setTags(flightId, id, tags)),
     remove: (id) => run(() => removeItem(flightId, id)),
     loadStandard: () => run(() => loadStandardCart(flightId)),
   }

@@ -21,7 +21,7 @@ export const FEATURES: Record<Role, Feature[]> = {
       offReason: { boarding: 'The restroom line opens after takeoff.', landed: 'The restroom line is closed after landing.' },
     },
     {
-      id: 'snacks', label: 'Snacks & Drinks', icon: 'cup', description: 'Pick what you would like before the cart reaches your row.',
+      id: 'snacks', label: 'Snacks & Drinks', icon: 'cup', description: 'Free drinks and snacks. Pick before the cart reaches your row.',
       phases: ['boarding', 'inflight'],
       offReason: { landed: 'Snack service has ended for this flight.' },
     },

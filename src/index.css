@@ -531,6 +531,7 @@ button:disabled { cursor: default; }
 
 /* ---------- Passenger assistance ---------- */
 .assist-call { max-width: 880px; margin-bottom: 28px; border-left: 4px solid var(--sky); }
+.snack-free { margin-bottom: 24px; border-left: 4px solid var(--ok); }
 .assist-mine { margin-bottom: 28px; max-width: 880px; }
 .assist-mine .section-label, .assist > .section-label { margin: 0 0 12px; }
 .assist-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -620,6 +621,14 @@ button:disabled { cursor: default; }
 .cart-name { font-weight: 500; }
 .cart-tag { margin-left: 8px; padding: 2px 6px; border-radius: 6px; background: var(--paper-2); color: var(--accent); font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; vertical-align: middle; }
 .cart-row.is-out .cart-name { color: var(--ink-2); text-decoration: line-through; }
+.tag-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag-toggle { min-height: 32px; padding: 4px 10px; border: 1px dashed var(--line); border-radius: 99px; font-size: 0.8rem; color: var(--ink-2); }
+.tag-toggle[aria-pressed='true'] { border-style: solid; border-color: var(--accent); color: var(--accent); }
+/* Passenger choice tags */
+.choice-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; font-weight: 500; }
+.choice-tag { padding: 2px 8px; border-radius: 99px; background: var(--paper-2); color: var(--ink-2); font-size: 0.78rem; }
+.choice-tag.is-warn { color: var(--accent); }
+.choice.active .choice-tag { background: rgba(255, 255, 255, 0.15); color: #f8f4ec; }
 .btn-mini-out { border-color: var(--danger); color: var(--danger); }
 .tabs { margin-bottom: 28px; }
 .total-row { display: grid; grid-template-columns: 48px auto 1fr; align-items: center; gap: 12px; padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--line); }

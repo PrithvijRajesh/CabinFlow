@@ -50,7 +50,10 @@ function restroomStatus(q: RestroomQueue) {
 function snackStatus(cart: Cart, picks: SnackPickState) {
   if (!cart.ready || !picks.ready || cart.error) return null
   if (cart.items.length === 0) return 'Cart not set up yet'
-  return describePick(picks.pick, cart.items) ?? 'Pick before the cart comes'
+  if (picks.pick?.declined) return 'No thanks'
+  const text = describePick(picks.pick, cart.items)
+  if (text && picks.pick?.served_at) return 'Served · enjoy'
+  return text ?? 'Pick before the cart comes'
 }
 
 // Live one-line status for the assistance tile.

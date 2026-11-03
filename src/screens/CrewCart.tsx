@@ -5,7 +5,7 @@ import { useUndo } from '../context/useUndo'
 import type { Cart } from '../hooks/useCart'
 import type { CrewPicks } from '../hooks/useCrewPicks'
 import CrewOrders from './CrewOrders'
-import type { CartItem, ItemKind, Serve } from '../services/cart'
+import { ITEM_TAGS, type CartItem, type ItemKind, type ItemTag, type Serve } from '../services/cart'
 import type { IconName } from '../components/Icon'
 
 // What the crew pick when adding an item.
@@ -88,7 +88,10 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
         <ul className="crew-rows">
           {items.map((item) => (
             <li key={item.id} className={item.in_stock ? 'cart-row' : 'cart-row is-out'}>
-              <span className="cart-name">{item.name}{(item.serve === 'hot' || item.serve === 'plain') && <span className="cart-tag">{item.serve}</span>}</span>
+              <span className="cart-name">
+                {item.name}{(item.serve === 'hot' || item.serve === 'plain') && <span className="cart-tag">{item.serve}</span>}
+                {item.kind === 'snack' && <TagToggles item={item} cart={cart} />}
+              </span>
               <span className="crew-actions">
                 <button
                   className={item.in_stock ? 'btn-mini' : 'btn-mini btn-mini-out'}
@@ -107,6 +110,21 @@ function ItemList({ title, items, cart }: { title: string; items: CartItem[]; ca
         </ul>
       )}
     </div>
+  )
+}
+
+// Allergen and diet tags passengers see on the snack. Tap to toggle.
+function TagToggles({ item, cart }: { item: CartItem; cart: Cart }) {
+  const toggle = (tag: ItemTag) =>
+    cart.setTags(item.id, item.tags.includes(tag) ? item.tags.filter((t) => t !== tag) : [...item.tags, tag])
+  return (
+    <span className="tag-toggles">
+      {ITEM_TAGS.map((t) => (
+        <button key={t.tag} type="button" className="tag-toggle" aria-pressed={item.tags.includes(t.tag)} disabled={cart.busy} onClick={() => void toggle(t.tag)}>
+          {t.label}
+        </button>
+      ))}
+    </span>
   )
 }
 
