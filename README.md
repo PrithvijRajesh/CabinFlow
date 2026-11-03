@@ -2,7 +2,7 @@
 
 A seatback module that keeps passengers in their seats and crew out of the aisle. Built for seatback in-flight entertainment (IFE) makers like Panasonic Avionics to offer airlines as a module on their platform.
 
-**Live demo:** _add Vercel URL here_
+**Live demo:** https://cabin-flow-pr-534e.vercel.app
 
 ## What it does
 
