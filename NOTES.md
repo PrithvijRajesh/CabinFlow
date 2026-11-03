@@ -7,7 +7,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Phase:** all 9 PRD features exist. Now refining features so they work properly.
 - **Done (refinement):** crew login (Supabase Auth + `crew_members`) and aircraft flight setup on crew Home (`aircraft_flights`, aircraft `DEMO-1`).
 - **Done (refinement):** flight-phase rules (before takeoff: Restroom + Assistance off, Snacks on; after landing: Restroom + Snacks off). Crew override on crew Home. UI-only enforcement.
-- **Done (refinement, uncommitted):** Nielsen heuristics pass, all 9 items + H7/H10/contrast. Waiting for the user's review, then **one commit + push for the whole pass**.
+- **Done (refinement):** Nielsen heuristics pass, all 9 items + H7/H10/contrast. Committed and pushed as one commit (853ab31).
 - **Undo / toast pattern:** destructive actions go through `useUndo().defer({ key, message, commit })` (5s Undo toast); screens hide pending items with `isPending(key)`. Confirmations use `useUndo().notify(message)`.
 - **Errors:** always `friendlyError(e, fallback)` from `src/lib/errors.ts` and `<ErrorNotice message onRetry />`. Every live hook exposes `retry`.
 - **Crew Home:** one live card per module (`crewStatus()` in `Home.tsx`). No separate Modules list any more.
@@ -21,7 +21,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
   - Crew would use crew panels or tablets, not seatbacks.
   - In the air, a real install may use an onboard server instead of the cloud. That's why each backend lives behind one file in `src/services/`.
 - **Stack:** React 19 + TypeScript + Vite, with Supabase for shared real-time data.
-- **Design:** passengers get a "boarding pass" theme (ivory, ink, orange). Crew get a dark "ops console" theme (amber). The user rejected a generic AI-looking UI, so keep this style.
+- **Design:** passengers get the "Night Cabin" palette (navy `#0F1B2D`, cabin blue `#2F6CC0` panels, amber `#F2A541` actions, teal `#2BB3A3` success), chosen for low glare in dark cabins. Crew keep the dark "ops console" theme (amber). Fonts: Lexend (headings), Atkinson Hyperlegible Next (body), IBM Plex Mono (numbers). Vibe: calm, reassuring, effortless. The user rejected a generic AI-looking UI.
 - **Privacy rule:** store preferences and usage, not people. Never show passengers other seats' info.
 
 ## How it works (quick map)

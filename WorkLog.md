@@ -123,3 +123,8 @@
 - **2026-10-27** — #8 Consistency (H4): trash icon for removing (backspace icon stays on the keypad only); in-card confirms dismiss with "Back"; specific labels "Cancel request" and "Clear pick"; tertiary buttons are 44px.
 - **2026-10-27** — #9 Recognition (H6): crew phase notices have a "Change phase" button that opens crew Home and scrolls to the phase control.
 - **2026-10-27** — H10: Snacks lede now says picks can be changed until the cart arrives. All heuristics items done; awaiting user review before one commit + push.
+- **2026-10-27** — Heuristics pass approved, committed and pushed (853ab31).
+
+## Refinement — MVP demo polish (first-time passenger pass)
+
+- **2026-11-02** — Passenger theme switched to the "Night Cabin" palette (navy, cabin blue, amber, teal); fonts now Lexend (headings) + Atkinson Hyperlegible Next (body).
