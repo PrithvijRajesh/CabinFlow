@@ -27,6 +27,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
   - In the air, a real install may use an onboard server instead of the cloud. That's why each backend lives behind one file in `src/services/`.
 - **Stack:** React 19 + TypeScript + Vite, with Supabase for shared real-time data.
 - **Design:** passengers get the "Night Cabin" palette (navy `#0F1B2D`, cabin blue `#2F6CC0` panels, amber `#F2A541` actions, teal `#2BB3A3` success), chosen for low glare in dark cabins. Crew keep the dark "ops console" theme (amber). Fonts: Lexend (headings), Atkinson Hyperlegible Next (body), IBM Plex Mono (numbers). Vibe: calm, reassuring, effortless. The user rejected a generic AI-looking UI.
+- **Real customer evidence (for the demo):** someone the user interviewed said having to wait in the restroom line every time was very annoying. That drove the restroom queue. Changes from this session's first-time-passenger review can be presented as fixes for issues a new user would hit.
 - **Privacy rule:** store preferences and usage, not people. Never show passengers other seats' info.
 
 ## How it works (quick map)
