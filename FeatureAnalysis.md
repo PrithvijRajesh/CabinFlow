@@ -511,3 +511,11 @@
 - **What it does.** When crew tap "On my way", the passenger sees a banner at the top of every screen: "Crew are on the way: Blanket or pillow. View". Tapping it opens Assistance.
 - **How it's implemented.** `AppShell` finds the first acknowledged request the passenger hasn't seen yet. Navigation goes through `go(id)`; entering or leaving the Assistance screen marks current acknowledged requests as seen, so the banner doesn't come back for them. No backend change, it uses the live `useAssistance` data AppShell already has.
 - **Why it matters.** Before, "on the way" only showed on the Assistance screen or the Home tile. A passenger watching a movie never saw it, so they kept wondering if the request went through and often pressed the call button too, creating a duplicate for crew.
+
+### Assistance: "Seen by crew" and wait-time expectations
+- **What it does.** A request now moves through four visible steps: **Sent** → **Seen by crew** → **Crew are on the way** → **Done**. Under each open request is a line about what to expect: "Crew usually respond within a few minutes", then once seen, "Crew will come as soon as they're free. It can take longer while the seatbelt sign is on." The send card says the same before sending.
+- **How it's implemented.**
+  - Migration `0014_assist_seen.sql` adds `seen_at` to `assistance_requests` and a crew-only function `assist_seen(flight)` that stamps every new, unseen request on the flight.
+  - `CrewRequests` calls `assist.markSeen()` from an effect whenever there are unseen new requests, so opening the screen (or a request arriving while it's open) marks them seen. `markSeen` is a stable `useCallback`, so the effect doesn't fire every render.
+  - The passenger's realtime subscription picks up the update; `statusOf()` in `Assistance.tsx` shows "Seen by crew" for open requests with `seen_at`. The Home tile says "seen by crew" too.
+- **Why it matters.** "Sent" alone left passengers wondering whether anyone got it, and the wait felt endless with no explanation. Knowing a person has seen it, and why it might take a while, keeps them calm and in their seat instead of pressing the call button and sending a duplicate.

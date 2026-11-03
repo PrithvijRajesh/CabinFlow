@@ -12,12 +12,14 @@ function ago(iso: string) {
   return m < 1 ? 'just now' : `${m} min ago`
 }
 
-const STATUS: Record<AssistRequest['status'], { label: string; tone: string }> = {
-  open: { label: 'Sent', tone: 'sent' },
-  ack: { label: 'Crew is on the way', tone: 'ack' },
+const STATUS: Record<AssistRequest['status'] | 'seen', { label: string; tone: string; hint?: string }> = {
+  open: { label: 'Sent', tone: 'sent', hint: 'Crew usually respond within a few minutes.' },
+  seen: { label: 'Seen by crew', tone: 'seen', hint: "Crew will come as soon as they're free. It can take longer while the seatbelt sign is on." },
+  ack: { label: 'Crew are on the way', tone: 'ack' },
   done: { label: 'Done', tone: 'done' },
   cancelled: { label: 'Cancelled', tone: 'cancelled' },
 }
+const statusOf = (r: AssistRequest) => STATUS[r.status === 'open' && r.seen_at ? 'seen' : r.status]
 
 export default function Assistance({ assist }: { assist: AssistanceState }) {
   const [picked, setPicked] = useState<AssistType | null>(null)
@@ -39,7 +41,7 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
           <p className="eyebrow section-label">Your requests</p>
           <ul className="assist-list">
             {assist.requests.map((r) => {
-              const s = STATUS[r.status]
+              const s = statusOf(r)
               const live = r.status === 'open' || r.status === 'ack'
               return (
                 <li key={r.id} className={`assist-item is-${s.tone}`}>
@@ -47,6 +49,7 @@ export default function Assistance({ assist }: { assist: AssistanceState }) {
                     <span className="assist-item-label">{labelOf(r.type)}</span>
                     {r.note && <span className="assist-item-note">“{r.note}”</span>}
                     <span className="assist-item-meta">Sent {ago(r.created_at)}</span>
+                    {s.hint && <span className="assist-item-note">{s.hint}</span>}
                   </span>
                   <span className={`pill pill-${s.tone}`}>{s.label}</span>
                   {live && (
@@ -99,7 +102,7 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
 
   async function send() {
     if (await assist.send(type, needsNote ? note.trim() : null)) {
-      undo.notify("Request sent. You'll see here when crew are on the way.")
+      undo.notify("Request sent. We'll let you know when crew are on the way.")
       onDone()
     }
   }
@@ -108,6 +111,10 @@ function Confirm({ type, assist, onDone }: { type: AssistType; assist: Assistanc
     <div className={info.urgent ? 'queue-card queue-turn' : 'queue-card'}>
       <p className="eyebrow">Send request</p>
       <p className="assist-confirm-title">{info.label}</p>
+
+      {!info.urgent && (
+        <p className="queue-sub">Crew usually respond within a few minutes. You'll see when they've seen it and when they're on the way.</p>
+      )}
 
       {info.urgent && (
         <p className="queue-sub"><strong>For an emergency, press your call button too.</strong> This request is marked urgent for the crew.</p>

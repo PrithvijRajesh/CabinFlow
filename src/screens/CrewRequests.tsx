@@ -26,6 +26,12 @@ export default function CrewRequests({ assist, onChangePhase }: { assist: CrewAs
   const done = (r: CrewAssistRequest) =>
     undo.defer({ key: `req:${r.id}`, message: `${r.seat} · ${labelOf(r)} marked done`, commit: () => assist.done(r.id) })
   const total = assist.open.length + assist.onTheWay.length
+  // Opening this screen tells passengers their request was seen.
+  const unseen = assist.open.some((r) => !r.seen_at)
+  const { markSeen } = assist
+  useEffect(() => {
+    if (unseen) void markSeen()
+  }, [unseen, markSeen])
 
   return (
     <section className="crew-requests">

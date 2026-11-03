@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  ASSIST_TYPES, ackRequest, doneRequest, fetchFlightRequests, subscribeFlightRequests,
+  ASSIST_TYPES, ackRequest, doneRequest, fetchFlightRequests, markSeen as markFlightSeen, subscribeFlightRequests,
   type CrewAssistRequest,
 } from '../services/assistance'
 import { supabase } from '../lib/supabase'
@@ -16,6 +16,7 @@ export interface CrewAssistance {
   busy: boolean
   ack: (id: string) => Promise<void>
   done: (id: string) => Promise<void>
+  markSeen: () => Promise<void> // crew are looking at the Requests screen
   retry: () => Promise<void> // reload after an error
 }
 
@@ -65,6 +66,15 @@ export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssis
     }
   }, [refresh])
 
+  // Stable, so the Requests screen can call it from an effect.
+  const markSeen = useCallback(async () => {
+    try {
+      await markFlightSeen(flightId)
+    } catch (e) {
+      setError(friendlyError(e, "That didn't go through. Please try again."))
+    }
+  }, [flightId])
+
   // rows arrive oldest first.
   const open = rows.filter((r) => r.status === 'open').sort((a, b) => Number(isUrgent(b)) - Number(isUrgent(a)))
 
@@ -79,5 +89,6 @@ export function useCrewAssistance(flightId: string, enabled: boolean): CrewAssis
     retry: refresh,
     ack: (id) => run(() => ackRequest(flightId, id)),
     done: (id) => run(() => doneRequest(flightId, id)),
+    markSeen,
   }
 }

@@ -33,4 +33,4 @@ A application that connects to seat back screens to help improve airline operati
 
 MVP demo polish. Going feature by feature through the eyes of a first-time passenger, fixing pitfalls one at a time. Commit and push after each fix.
 
-- Now: Assistance. Done: #19 (crew-on-the-way banner). Next: #17/#18 (seen by crew + wait-time expectations).
+- Now: Assistance. Done: #19 (crew-on-the-way banner), #17/#18 (seen by crew + wait-time expectations). Remaining shortlist: #3/#12 (call-button explainer), #11/#13 (calmer, discreet urgent card), #5 (optional note on every type).

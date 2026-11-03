@@ -12,6 +12,7 @@ export interface AssistRequest {
   note: string | null
   status: AssistStatus
   created_at: string
+  seen_at: string | null // crew opened their Requests screen
   ack_at: string | null
   closed_at: string | null
 }
@@ -47,7 +48,7 @@ export async function fetchMyRequests(flightId: string, seat: string): Promise<A
   const since = new Date(Date.now() - RECENT_MINUTES * 60_000).toISOString()
   const { data, error } = await client()
     .from('assistance_requests')
-    .select('id, type, note, status, created_at, ack_at, closed_at')
+    .select('id, type, note, status, created_at, seen_at, ack_at, closed_at')
     .eq('flight_id', flightId)
     .eq('seat', seat)
     .or(`status.in.(open,ack),closed_at.gte.${since}`)
@@ -61,7 +62,7 @@ export async function fetchFlightRequests(flightId: string): Promise<CrewAssistR
   const since = new Date(Date.now() - RECENT_MINUTES * 60_000).toISOString()
   const { data, error } = await client()
     .from('assistance_requests')
-    .select('id, seat, type, note, status, created_at, ack_at, closed_at')
+    .select('id, seat, type, note, status, created_at, seen_at, ack_at, closed_at')
     .eq('flight_id', flightId)
     .or(`status.in.(open,ack),closed_at.gte.${since}`)
     .order('created_at')
@@ -76,6 +77,7 @@ async function rpc(fn: string, args: Record<string, string | null>) {
 
 export const sendRequest = (flightId: string, seat: string, type: AssistType, note: string | null) =>
   rpc('assist_request', { p_flight: flightId, p_seat: seat, p_type: type, p_note: note })
+export const markSeen = (flightId: string) => rpc('assist_seen', { p_flight: flightId })
 export const ackRequest = (flightId: string, id: string) => rpc('assist_ack', { p_flight: flightId, p_id: id })
 export const doneRequest = (flightId: string, id: string) => rpc('assist_done', { p_flight: flightId, p_id: id })
 export const cancelRequest = (flightId: string, seat: string, id: string) =>

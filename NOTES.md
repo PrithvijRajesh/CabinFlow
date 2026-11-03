@@ -13,6 +13,7 @@ Short orientation for the next session. Details live in `prd.md`, `WorkLog.md` a
 - **Crew Home:** one live card per module (`crewStatus()` in `Home.tsx`). No separate Modules list any more.
 - **Drink serve types:** cold (ice), hot (cream + sugar), plain (no options).
 - **Post-MVP idea (user agreed, deferred):** two-phase restroom turn (2 min to acknowledge, 10 min crew flag, 15 min auto-release). See FeatureAnalysis, Feature 3.
+- **Assistance status flow:** Sent → Seen by crew (`seen_at`, set by `assist_seen` when crew open Requests) → Crew are on the way (`ack`) → Done. Passengers get a banner on any screen when a request is acknowledged.
 - **Crew UX principle:** crew screens should be glance-and-fix, not babysat. Automate the routine; crew act only on exceptions.
 
 ## Key decisions

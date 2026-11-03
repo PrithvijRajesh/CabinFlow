@@ -59,7 +59,7 @@ function assistStatus(a: Assistance) {
   }
   const r = a.active[0]
   const label = ASSIST_TYPES.find((t) => t.type === r.type)?.label ?? 'Request'
-  return `${label}: ${r.status === 'ack' ? 'crew on the way' : 'sent'}`
+  return `${label}: ${r.status === 'ack' ? 'crew on the way' : r.seen_at ? 'seen by crew' : 'sent'}`
 }
 
 function PassengerHome({ seat, features, restroom, snacks, help, onOpen }: { seat: string; features: Feature[]; restroom: RestroomQueue; snacks: string | null; help: string | null; onOpen: (id: string) => void }) {
